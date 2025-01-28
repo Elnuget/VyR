@@ -233,6 +233,18 @@ class PagoController extends Controller
                 $pedido->save();
             }
 
+            // Si el pago es en efectivo (ID 1), eliminar la entrada correspondiente en caja
+            if ($pago->mediodepago_id == 1) {
+                $cajaEntry = Caja::where([
+                    ['valor', '=', $pago->pago],
+                    ['motivo', '=', 'Abono ' . $pedido->cliente]
+                ])->first();
+
+                if ($cajaEntry) {
+                    $cajaEntry->delete();
+                }
+            }
+
             $pago->delete(); // Deletes from the 'pagos' table
 
             return redirect()->route('pagos.index')->with([
