@@ -49,7 +49,7 @@
                 <option value="">Seleccionar el pedido</option>
                 @foreach($pedidos as $pedido)
                     <option value="{{ $pedido->id }}" data-saldo="{{ $pedido->saldo }}" {{ isset($selectedPedidoId) && $selectedPedidoId == $pedido->id ? 'selected' : '' }}>
-                        {{ $pedido->numero_orden }}
+                        Orden: {{ $pedido->numero_orden }} - Cliente: {{ $pedido->cliente }}
                     </option>
                 @endforeach
             </select>
@@ -69,6 +69,12 @@
                    class="form-control" 
                    placeholder="0.00"
                    onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46">
+        </div>
+        
+        <div class="form-group">
+            <label>Fecha de Creación</label>
+            <input name="created_at" type="datetime-local" class="form-control" 
+                   value="{{ old('created_at', now()->format('Y-m-d\TH:i')) }}">
         </div>
            
 

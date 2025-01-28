@@ -57,7 +57,7 @@
                 <select name="ano" class="form-control" id="filtroAno">
                     <option value="">Seleccione Año</option>
                     @for ($year = date('Y'); $year >= 2000; $year--)
-                        <option value="{{ $year }}" {{ request('ano') == $year ? 'selected' : '' }}>{{ $year }}</option>
+                        <option value="{{ $year }}" {{ request('ano', date('Y')) == $year ? 'selected' : '' }}>{{ $year }}</option>
                     @endfor
                 </select>
             </div>
@@ -66,7 +66,7 @@
                 <select name="mes" class="form-control" id="filtroMes">
                     <option value="">Seleccione Mes</option>
                     @foreach (range(1, 12) as $m)
-                        <option value="{{ $m }}" {{ request('mes') == $m ? 'selected' : '' }}>
+                        <option value="{{ $m }}" {{ request('mes', date('n')) == $m ? 'selected' : '' }}>
                             {{ DateTime::createFromFormat('!m', $m)->format('F') }}
                         </option>
                     @endforeach

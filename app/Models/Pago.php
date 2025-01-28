@@ -14,7 +14,8 @@ class Pago extends Model
     protected $fillable = [
         'pedido_id',
         'mediodepago_id',
-        'pago'
+        'pago',
+        'created_at'
     ];
 
     protected $casts = [

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CashHistory;
 use Illuminate\Http\Request;
 use App\Models\Caja;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class CashHistoryController extends Controller
 {
@@ -18,13 +18,31 @@ class CashHistoryController extends Controller
 
     public function store(Request $request)
     {
-        $cashHistory = new \App\Models\CashHistory();
-        $cashHistory->monto = $request->monto;
-        $cashHistory->estado = $request->estado;
-        $cashHistory->user_id = auth()->id();
-        $cashHistory->save();
+        $request->validate([
+            'monto' => 'required|numeric',
+            'estado' => 'required|in:Apertura,Cierre'
+        ]);
 
-        return redirect()->back()->with('success', 'Caja ' . $request->estado . ' exitosamente');
+        $lastRecord = CashHistory::latest()->first();
+        $requestedState = $request->estado;
+
+        if ($requestedState === 'Cierre' && (!$lastRecord || $lastRecord->estado !== 'Apertura')) {
+            return redirect()->back()->with('error', 'No se puede cerrar una caja que no ha sido abierta');
+        }
+
+        try {
+            $cashHistory = new CashHistory();
+            $cashHistory->monto = $request->monto;
+            $cashHistory->estado = $requestedState;
+            $cashHistory->user_id = auth()->id();
+            $cashHistory->save();
+
+            $mensaje = $requestedState === 'Apertura' ? 'Caja abierta' : 'Caja cerrada';
+            return redirect()->route('cash-histories.index')->with('success', $mensaje . ' exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error inserting cash history: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al guardar el historial de caja');
+        }
     }
 
     public function update(Request $request, CashHistory $cashHistory)
@@ -52,5 +70,17 @@ class CashHistoryController extends Controller
             'mensaje' => 'Registro de caja eliminado exitosamente',
             'tipo' => 'alert-success'
         ]);
+    }
+
+    public function showClosingCard()
+    {
+        session(['showClosingCard' => true]);
+        return redirect()->back();
+    }
+
+    public function cancelClosingCard()
+    {
+        session()->forget('showClosingCard');
+        return redirect()->route('dashboard');
     }
 }

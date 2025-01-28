@@ -54,7 +54,7 @@ class PagoController extends Controller
     public function create(Request $request)
     {
         $mediosdepago = mediosdepago::all();
-        $pedidos = Pedido::select('id', 'numero_orden', 'saldo')->get(); // Seleccionar solo id, numero_orden y saldo
+        $pedidos = Pedido::select('id', 'numero_orden', 'saldo', 'cliente')->get(); // Seleccionar solo id, numero_orden, saldo y cliente
         $selectedPedidoId = $request->get('pedido_id'); // Obtener el pedido seleccionado si existe
         return view('pagos.create', compact('mediosdepago', 'pedidos', 'selectedPedidoId')); // Pasar pedidos a la vista
     }
@@ -72,6 +72,7 @@ class PagoController extends Controller
             'pedido_id' => 'nullable|exists:pedidos,id',
             'mediodepago_id' => 'nullable|exists:mediosdepagos,id',
             'pago' => 'nullable|regex:/^\d+(\.\d{1,2})?$/',
+            'created_at' => 'sometimes|nullable|date',
         ]);
 
         // Format pago to ensure exact decimal
@@ -148,9 +149,9 @@ class PagoController extends Controller
     public function edit($id)
     {
         $mediosdepago = mediosdepago::all();
-        $pedidos = Pedido::select('id', 'numero_orden', 'saldo')->get(); // Seleccionar solo id, numero_orden y saldo
+        $pedidos = Pedido::select('id', 'numero_orden', 'saldo', 'cliente')->get(); // Agregado 'cliente' a la consulta
         $pago = Pago::findOrFail($id);
-        return view('pagos.edit', compact('pago', 'mediosdepago', 'pedidos')); // Pasar pedidos a la vista
+        return view('pagos.edit', compact('pago', 'mediosdepago', 'pedidos'));
     }
 
     /**
@@ -166,6 +167,7 @@ class PagoController extends Controller
             'pedido_id' => 'nullable|exists:pedidos,id',
             'mediodepago_id' => 'nullable|exists:mediosdepagos,id',
             'pago' => 'nullable|regex:/^\d+(\.\d{1,2})?$/',
+            'created_at' => 'sometimes|nullable|date',
         ]);
 
         // Format pago to ensure exact decimal
@@ -175,7 +177,12 @@ class PagoController extends Controller
             $pago = Pago::findOrFail($id);
             $oldPagoAmount = $pago->pago;
 
-            $pago->update($validatedData); // Updates the 'pagos' table
+            // Si se proporciona una nueva fecha de creación, actualizarla
+            if (isset($validatedData['created_at'])) {
+                $pago->created_at = $validatedData['created_at'];
+            }
+
+            $pago->update($validatedData);
             
             // Actualizar saldo del pedido si se proporciona pedido_id
             if (isset($validatedData['pedido_id'])) {

@@ -36,6 +36,18 @@
                 <!-- Removed Paciente selection -->
                 
                 <div class="form-group">
+                    <label>Seleccione un Pedido</label>
+                    <select name="pedido_id" id="pedido_id" required class="form-control">
+                        <option value="">Seleccionar el pedido</option>
+                        @foreach($pedidos as $pedido)
+                            <option value="{{ $pedido->id }}" data-saldo="{{ $pedido->saldo }}" {{ $pedido->id == $pago->pedido_id ? 'selected' : '' }}>
+                                Orden: {{ $pedido->numero_orden }} - Cliente: {{ $pedido->cliente }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label>Seleccione un Medio de Pago</label>
                     <select name="mediodepago_id" class="form-control">
                       
@@ -48,17 +60,26 @@
                 
                 <div class="form-group">
                     <label>Saldo</label>
-                    <input name="saldo" type="text" class="form-control" value="{{ $pago->pedido->saldo + $pago->pago }}" readonly>
+                    <input name="saldo" id="saldo" type="text" class="form-control" value="{{ $pago->pedido->saldo + $pago->pago }}" readonly>
                 </div>
                 
                 <div class="form-group">
                     <label>Pago</label>
                     <input name="pago" 
+                           required 
                            type="text" 
                            pattern="^\d*\.?\d{0,2}$"
                            class="form-control" 
                            value="{{ number_format($pago->pago, 2, '.', '') }}"
                            onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46">
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha de Creación</label>
+                    <input name="created_at" 
+                           type="datetime-local" 
+                           class="form-control" 
+                           value="{{ \Carbon\Carbon::parse($pago->created_at)->format('Y-m-d\TH:i') }}">
                 </div>
 
                 @if ($errors->any())

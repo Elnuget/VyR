@@ -45,20 +45,66 @@
             </span>
         </li>
 
+        {{-- Botón de cierre de caja --}}
+        @if($lastCashHistory && $lastCashHistory->estado === 'Apertura')
+        <li class="nav-item">
+            <form action="{{ route('show-closing-card') }}" method="POST" style="display: inline;">
+                @csrf
+                <button type="submit" class="btn btn-danger nav-link">
+                    <i class="fas fa-cash-register mr-1"></i>
+                    Cerrar Caja
+                </button>
+            </form>
+        </li>
+
+        {{-- Modal de Cierre de Caja --}}
+        <div class="modal fade" id="modalCierreCaja" tabindex="-1" role="dialog" aria-labelledby="modalCierreCajaLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-body p-4">
+                        <div class="text-center mb-4">
+                            <h1><i class="fas fa-cash-register fa-3x mb-3 text-danger"></i></h1>
+                            <h2>Cierre de Caja</h2>
+                            <p class="text-muted">Por favor confirme el monto de cierre antes de continuar</p>
+                        </div>
+
+                        <div class="card" style="background-color: #f8d7da; border: none;">
+                            <div class="card-body">
+                                <form action="{{ route('cash-histories.store') }}" method="POST">
+                                    @csrf
+                                    @php
+                                        $sumCaja = \App\Models\Caja::sum('valor');
+                                    @endphp
+                                    <div class="form-group">
+                                        <label for="monto" class="font-weight-bold">Monto de Cierre</label>
+                                        <input type="number" step="0.01" class="form-control form-control-lg" 
+                                               id="monto" name="monto" value="{{ $sumCaja }}" readonly required>
+                                    </div>
+                                    <input type="hidden" name="estado" value="Cierre">
+                                    
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-secondary btn-lg flex-grow-1 mr-2" data-dismiss="modal">
+                                            <i class="fas fa-times mr-2"></i>Cancelar
+                                        </button>
+                                        <button type="submit" class="btn btn-danger btn-lg flex-grow-1">
+                                            <i class="fas fa-door-closed mr-2"></i>Confirmar Cierre
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Custom right links --}}
         @yield('content_top_nav_right')
 
         {{-- Configured right links --}}
         @each('adminlte::partials.navbar.menu-item', $adminlte->menu('navbar-right'), 'item')
 
-        {{-- User menu link --}}
-        @if(Auth::user())
-            @if(config('adminlte.usermenu_enabled'))
-                @include('adminlte::partials.navbar.menu-item-dropdown-user-menu')
-            @else
-                @include('adminlte::partials.navbar.menu-item-logout-link')
-            @endif
-        @endif
 
         {{-- Right sidebar toggler link --}}
         @if(config('adminlte.right_sidebar'))

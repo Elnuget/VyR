@@ -114,4 +114,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/leer-qr', function () {
         return view('inventario.leerQR');
     })->name('leerQR');
+
+    Route::post('/show-closing-card', [CashHistoryController::class, 'showClosingCard'])->name('show-closing-card');
+    Route::get('/cancel-closing-card', [CashHistoryController::class, 'cancelClosingCard'])->name('cancel-closing-card');
 });
