@@ -369,7 +369,7 @@
     'locale' => 'es',
     'fallback_locale' => 'es',
     'faker_locale' => 'es-ES',
-    'key' => 'base64:haarqV3VAPLNH5uqrjUjyW9lj4fT/QK0o9Vu7EXRRkU=',
+    'key' => 'base64:WYmEiHQysL5bpSMnJMIgGo/0RgbmlyEIM3Oaug+nXwo=',
     'cipher' => 'AES-256-CBC',
     'providers' => 
     array (
@@ -549,7 +549,7 @@
       'file' => 
       array (
         'driver' => 'file',
-        'path' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\framework/cache/data',
+        'path' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\framework/cache/data',
       ),
       'memcached' => 
       array (
@@ -632,7 +632,7 @@
       array (
         'driver' => 'sqlite',
         'url' => NULL,
-        'database' => 'escleroptica',
+        'database' => 'optica',
         'prefix' => '',
         'foreign_key_constraints' => true,
       ),
@@ -642,7 +642,7 @@
         'url' => NULL,
         'host' => '127.0.0.1',
         'port' => '3306',
-        'database' => 'escleroptica',
+        'database' => 'optica',
         'username' => 'root',
         'password' => '',
         'unix_socket' => '',
@@ -662,7 +662,7 @@
         'url' => NULL,
         'host' => '127.0.0.1',
         'port' => '3306',
-        'database' => 'escleroptica',
+        'database' => 'optica',
         'username' => 'root',
         'password' => '',
         'charset' => 'utf8',
@@ -677,7 +677,7 @@
         'url' => NULL,
         'host' => '127.0.0.1',
         'port' => '3306',
-        'database' => 'escleroptica',
+        'database' => 'optica',
         'username' => 'root',
         'password' => '',
         'charset' => 'utf8',
@@ -720,12 +720,12 @@
       'local' => 
       array (
         'driver' => 'local',
-        'root' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\app',
+        'root' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\app',
       ),
       'public' => 
       array (
         'driver' => 'local',
-        'root' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\app/public',
+        'root' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\app/public',
         'url' => 'http://localhost/storage',
         'visibility' => 'public',
       ),
@@ -743,7 +743,7 @@
     ),
     'links' => 
     array (
-      'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\public\\storage' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\app/public',
+      'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\public\\storage' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\app/public',
     ),
   ),
   'fortify-options' => 
@@ -875,13 +875,13 @@
       'single' => 
       array (
         'driver' => 'single',
-        'path' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
         'level' => 'debug',
       ),
       'daily' => 
       array (
         'driver' => 'daily',
-        'path' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
         'level' => 'debug',
         'days' => 14,
       ),
@@ -932,7 +932,7 @@
       ),
       'emergency' => 
       array (
-        'path' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\logs/laravel.log',
       ),
       'deprecations' => 
       array (
@@ -949,11 +949,11 @@
       'smtp' => 
       array (
         'transport' => 'smtp',
-        'host' => 'sandbox.smtp.mailtrap.io',
-        'port' => '2525',
-        'encryption' => 'tls',
-        'username' => '77642022f521bb',
-        'password' => '6c62c03757a7c9',
+        'host' => 'mail.escleroptica.com',
+        'port' => '465',
+        'encryption' => 'ssl',
+        'username' => '_mainaccount@escleroptica.com',
+        'password' => ';3e8zLHEo7-Bz7',
         'timeout' => NULL,
         'auth_mode' => NULL,
       ),
@@ -986,15 +986,15 @@
     ),
     'from' => 
     array (
-      'address' => 'hello@example.com',
-      'name' => 'Example',
+      'address' => '_mainaccount@escleroptica.com',
+      'name' => 'SIVIG',
     ),
     'markdown' => 
     array (
       'theme' => 'default',
       'paths' => 
       array (
-        0 => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\resources\\views/vendor/mail',
+        0 => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\resources\\views/vendor/mail',
       ),
     ),
   ),
@@ -1099,7 +1099,7 @@
     'lifetime' => '120',
     'expire_on_close' => false,
     'encrypt' => false,
-    'files' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\framework/sessions',
+    'files' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\framework/sessions',
     'connection' => NULL,
     'table' => 'sessions',
     'store' => NULL,
@@ -1119,9 +1119,9 @@
   array (
     'paths' => 
     array (
-      0 => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\resources\\views',
+      0 => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\resources\\views',
     ),
-    'compiled' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\storage\\framework\\views',
+    'compiled' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\storage\\framework\\views',
   ),
   'flare' => 
   array (
@@ -1166,7 +1166,7 @@
   'livewire' => 
   array (
     'class_namespace' => 'App\\Http\\Livewire',
-    'view_path' => 'C:\\Users\\cangu\\Documents\\OPTICAV0.1\\resources\\views/livewire',
+    'view_path' => 'C:\\Users\\Carlos\\Documents\\OPTICAV0.1\\resources\\views/livewire',
     'layout' => 'layouts.app',
     'asset_url' => NULL,
     'app_url' => NULL,
