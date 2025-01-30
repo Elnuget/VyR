@@ -62,7 +62,6 @@
                 <div class="icheck-primary">
                     <input type="checkbox" name="remember" id="remember" checked onclick="return false;">
                     <label for="remember">
-                        Prueba de Pull
                         {{ __('adminlte::adminlte.remember_me') }}
                     </label>
                 </div>
