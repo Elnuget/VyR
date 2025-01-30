@@ -103,7 +103,7 @@ class PagoController extends Controller
 
             // Send email notification
             try {
-                Mail::to('escleropticarg@gmail.com')->send(new PagoNotification($nuevoPago));
+                Mail::to('cangulo009@outlook.es')->send(new PagoNotification($nuevoPago));
                 Log::info('Email sent successfully for payment ID: ' . $nuevoPago->id);
             } catch (\Exception $e) {
                 Log::error('Failed to send email for payment ID: ' . $nuevoPago->id . '. Error: ' . $e->getMessage());
