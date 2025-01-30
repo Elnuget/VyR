@@ -257,8 +257,8 @@ return [
 
         [
             'text' => 'Pedidos',
-            'icon' => 'fas fa-shopping-cart', // Puedes cambiar el icono según tus preferencias
-            'route' => 'pedidos.index',
+            'icon' => 'fas fa-shopping-cart',
+            'url' => '/Pedidos?ano=' . date('Y') . '&mes=' . date('m'),
             'active' => ['Pedidos/*']
         ],
 

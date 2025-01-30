@@ -153,7 +153,7 @@
                                     <select class="form-control selectpicker" data-live-search="true" id="a_inventario_id" name="a_inventario_id[]">
                                         <option value="">Seleccione un Item del Inventario</option>
                                         @foreach ($armazones as $item)
-                                            <option value="{{ $item->id }}">{{ $item->codigo }}</option>
+                                            <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -281,7 +281,7 @@
                                     <select class="form-control selectpicker" data-live-search="true" id="d_inventario_id[]" name="d_inventario_id[]">
                                         <option value="">Seleccione un Item del Inventario</option>
                                         @foreach ($accesorios as $item)
-                                            <option value="{{ $item->id }}">{{ $item->codigo }}</option>
+                                            <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -491,7 +491,7 @@
                                 <select class="form-control selectpicker" data-live-search="true" name="a_inventario_id[]">
                                     <option value="" selected>Seleccione un Item del Inventario</option>
                                     @foreach ($armazones as $item)
-                                        <option value="{{ $item->id }}">{{ $item->codigo }}</option>
+                                        <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -574,7 +574,7 @@
                                 <select class="form-control selectpicker" data-live-search="true" name="d_inventario_id[]">
                                     <option value="" selected>Seleccione un Item del Inventario</option>
                                     @foreach ($accesorios as $item)
-                                        <option value="{{ $item->id }}">{{ $item->codigo }}</option>
+                                        <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
                                     @endforeach
                                 </select>
                             </div>

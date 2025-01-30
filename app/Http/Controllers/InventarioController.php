@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Inventario; // Asegúrate de importar el modelo Inventario
+use App\Models\Pedido; // Asegúrate de importar el modelo Pedido
 
 class InventarioController extends Controller
 {
@@ -133,30 +134,26 @@ class InventarioController extends Controller
         $validatedData = $request->validate([
             'fecha' => 'required|date',
             'lugar' => 'required|string|max:255',
-            'columna' => 'required|integer', // renamed from 'fila'
+            'columna' => 'required|integer',
             'numero' => 'required|integer',
             'codigo' => 'required|string|max:255',
             'valor' => 'nullable|numeric',
             'cantidad' => 'required|integer',
-            'orden' => 'nullable|integer',
         ]);
 
-        if ($request->input('lugar') === 'new') {
-            $validatedData['lugar'] = $request->input('new_lugar');
-        }
-
         try {
-            Inventario::whereId($id)->update($validatedData);
+            $inventario = Inventario::findOrFail($id);
+            $inventario->update($validatedData);
 
-            return redirect()->route('inventario.index')->with([
-                'error' => 'Exito',
+            return redirect()->route('inventario.actualizar')->with([
+                'error' => 'Éxito',
                 'mensaje' => 'Artículo actualizado exitosamente',
                 'tipo' => 'alert-success'
             ]);
         } catch (\Exception $e) {
-            return redirect()->route('inventario.index')->with([
+            return redirect()->route('inventario.actualizar')->with([
                 'error' => 'Error',
-                'mensaje' => 'Artículo no se ha actualizado',
+                'mensaje' => 'Artículo no se ha actualizado: ' . $e->getMessage(),
                 'tipo' => 'alert-danger'
             ]);
         }
@@ -198,5 +195,29 @@ class InventarioController extends Controller
     {
         \Log::info('Accediendo a la vista de lector QR');
         return view('inventario.leerQR');
+    }
+
+    public function actualizar()
+    {
+        try {
+            // Obtener artículos sin orden asignada
+            $inventario = Inventario::whereNull('orden')
+                ->orderBy('fecha', 'desc')
+                ->get();
+            
+            // Obtener pedidos para el select
+            $pedidos = Pedido::orderBy('numero_orden', 'desc')
+                ->where('saldo', '>', 0)
+                ->get();
+            
+            return view('inventario.actualizar', compact('inventario', 'pedidos'));
+        } catch (\Exception $e) {
+            \Log::error('Error en actualizar', ['error' => $e->getMessage()]);
+            return redirect()->route('inventario.index')->with([
+                'error' => 'Error',
+                'mensaje' => 'Error al cargar los artículos: ' . $e->getMessage(),
+                'tipo' => 'alert-danger'
+            ]);
+        }
     }
 }

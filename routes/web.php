@@ -43,7 +43,6 @@ Route::middleware(['auth:sanctum', 'verified', 'admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     
     // Only keep admin-specific inventory routes here
-    Route::put('Inventario/{articulo}', [InventarioController::class, 'update'])->name('inventario.update');
     Route::delete('Inventario/eliminar/{id}', [InventarioController::class, 'destroy'])->name('inventario.destroy');
 });
 
@@ -59,6 +58,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('Configuración/MediosDePago', [mediosdepagoController::class, 'store'])->name('configuracion.mediosdepago.store');
 
     // Inventory routes that all users can access
+    Route::put('/inventario/{id}', [InventarioController::class, 'update'])
+        ->name('inventario.update');
+    
+    Route::get('/Inventario/Actualizar', [InventarioController::class, 'actualizar'])
+        ->name('inventario.actualizar');
+    
     Route::get('Inventario', [InventarioController::class, 'index'])->name('inventario.index');
     Route::get('Inventario/Crear', [InventarioController::class, 'create'])->name('inventario.create');
     Route::post('Inventario', [InventarioController::class, 'store'])->name('inventario.store');

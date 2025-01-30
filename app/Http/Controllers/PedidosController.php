@@ -43,8 +43,14 @@ class PedidosController extends Controller
      */
     public function create()
     {
-        // Filtrar armazones (excluyendo accesorios)
+        // Obtener el mes y año actual
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+
+        // Filtrar armazones del mes y año actual
         $armazones = Inventario::where('cantidad', '>', 0)
+            ->whereYear('fecha', $currentYear)
+            ->whereMonth('fecha', $currentMonth)
             ->where('lugar', 'not like', '%ESTUCHE%')
             ->where('lugar', 'not like', '%LIQUIDO%')
             ->where('lugar', 'not like', '%GOTERO%')
@@ -52,25 +58,32 @@ class PedidosController extends Controller
             ->where('lugar', 'not like', '%COSAS%')
             ->get();
 
-        // Filtrar accesorios
+        // Filtrar accesorios del mes y año actual
         $accesorios = Inventario::where('cantidad', '>', 0)
-        ->where(function($query) {
-            $query->where('lugar', 'like', '%ESTUCHE%')
-                ->orWhere('lugar', 'like', '%LIQUIDO%')
-                ->orWhere('lugar', 'like', '%GOTERO%')
-                ->orWhere('lugar', 'like', '%SPRAY%')
-                ->orWhere('lugar', 'like', '%VITRINA%')
-                ->orWhere('lugar', 'like', '%COSAS%');
-        })
-        ->get();
-
+            ->whereYear('fecha', $currentYear)
+            ->whereMonth('fecha', $currentMonth)
+            ->where(function($query) {
+                $query->where('lugar', 'like', '%ESTUCHE%')
+                    ->orWhere('lugar', 'like', '%LIQUIDO%')
+                    ->orWhere('lugar', 'like', '%GOTERO%')
+                    ->orWhere('lugar', 'like', '%SPRAY%')
+                    ->orWhere('lugar', 'like', '%VITRINA%')
+                    ->orWhere('lugar', 'like', '%COSAS%');
+            })
+            ->get();
 
         $currentDate = date('Y-m-d');
         $lastOrder = Pedido::orderBy('numero_orden', 'desc')->first();
         $nextOrderNumber = $lastOrder ? $lastOrder->numero_orden + 1 : 1;
         $nextInvoiceNumber = 'Pendiente';
 
-        return view('pedidos.create', compact('armazones', 'accesorios', 'currentDate', 'nextOrderNumber', 'nextInvoiceNumber'));
+        return view('pedidos.create', compact(
+            'armazones', 
+            'accesorios', 
+            'currentDate', 
+            'nextOrderNumber', 
+            'nextInvoiceNumber'
+        ));
     }
 
     /**

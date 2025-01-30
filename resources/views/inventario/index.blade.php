@@ -118,6 +118,7 @@
                 <br>
                 <div class="btn-group">
                     <a type="button" class="btn btn-success" href="{{ route('inventario.create') }}">Crear articulo</a>
+                    <a type="button" class="btn btn-primary" href="{{ route('inventario.actualizar') }}">Actualizar articulos</a>
                     <a type="button" class="btn btn-success" href="{{ route('generarQR') }}">
                         <i class="fa fa-lg fa-fw fa-qrcode"></i> Generar
                     </a>

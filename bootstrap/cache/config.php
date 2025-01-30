@@ -97,7 +97,7 @@
       array (
         'text' => 'Pedidos',
         'icon' => 'fas fa-shopping-cart',
-        'route' => 'pedidos.index',
+        'url' => '/Pedidos?ano=2025&mes=01',
         'active' => 
         array (
           0 => 'Pedidos/*',
