@@ -21,26 +21,58 @@ class PedidosController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pedido::query()
-            ->select('id', 'numero_orden', 'cliente', 'fecha', 'total', 'saldo')
-            ->with([
-                'aInventario:id,codigo,cantidad',
-                'dInventario:id,codigo,cantidad'
-            ]);
+        try {
+            // Construir la consulta base con eager loading optimizado
+            $query = Pedido::query()
+                ->with([
+                    'aInventario:id,codigo,cantidad',
+                    'dInventario:id,codigo,cantidad',
+                    'pagos:id,pedido_id,pago'
+                ]);
 
-        if ($request->filled('ano')) {
-            $query->whereYear('fecha', $request->ano);
+            // Aplicar filtros si existen
+            if ($request->filled('ano')) {
+                $query->whereYear('fecha', $request->ano);
+            } else {
+                // Si no hay año especificado, usar el año actual
+                $query->whereYear('fecha', now()->year);
+            }
+
+            if ($request->filled('mes')) {
+                $query->whereMonth('fecha', $request->mes);
+            } else {
+                // Si no hay mes especificado, usar el mes actual
+                $query->whereMonth('fecha', now()->month);
+            }
+
+            // Seleccionar solo los campos necesarios
+            $pedidos = $query->select([
+                'id',
+                'numero_orden',
+                'fecha',
+                'cliente',
+                'celular',
+                'paciente',
+                'total',
+                'saldo',
+                'fact',
+                'usuario'
+            ])
+            ->orderBy('numero_orden', 'desc')
+            ->get();
+
+            // Calcular totales una sola vez
+            $totales = [
+                'ventas' => $pedidos->sum('total'),
+                'saldos' => $pedidos->sum('saldo'),
+                'cobrado' => $pedidos->sum('total') - $pedidos->sum('saldo')
+            ];
+
+            return view('pedidos.index', compact('pedidos', 'totales'));
+        } catch (\Exception $e) {
+            \Log::error('Error en PedidosController@index: ' . $e->getMessage());
+            return back()->with('error', 'Error al cargar los pedidos: ' . $e->getMessage());
         }
-
-        if ($request->filled('mes')) {
-            $query->whereMonth('fecha', $request->mes);
-        }
-
-        // Paginar resultados
-        $pedidos = $query->orderBy('numero_orden', 'desc')
-                         ->paginate(50);
-
-        return view('pedidos.index', compact('pedidos'));
     }
 
     /**

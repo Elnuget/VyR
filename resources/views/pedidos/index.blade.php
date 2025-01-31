@@ -17,18 +17,13 @@
 
 <div class="card">
     <div class="card-body">
-        {{-- Agregar resumen de totales --}}
-        @php
-            $totalVentas = $pedidos->sum('total');
-            $totalSaldos = $pedidos->sum('saldo');
-            $diferencia = $totalVentas - $totalSaldos;
-        @endphp
+        {{-- Resumen de totales --}}
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="info-box bg-info">
                     <div class="info-box-content">
                         <span class="info-box-text">Total Ventas</span>
-                        <span class="info-box-number">${{ number_format($totalVentas, 2, ',', '.') }}</span>
+                        <span class="info-box-number">${{ number_format($totales['ventas'], 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -36,7 +31,7 @@
                 <div class="info-box bg-warning">
                     <div class="info-box-content">
                         <span class="info-box-text">Total Saldos</span>
-                        <span class="info-box-number">${{ number_format($totalSaldos, 2, ',', '.') }}</span>
+                        <span class="info-box-number">${{ number_format($totales['saldos'], 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -44,7 +39,7 @@
                 <div class="info-box bg-success">
                     <div class="info-box-content">
                         <span class="info-box-text">Total Cobrado</span>
-                        <span class="info-box-number">${{ number_format($diferencia, 2, ',', '.') }}</span>
+                        <span class="info-box-number">${{ number_format($totales['cobrado'], 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -218,106 +213,62 @@
 
         // Inicializar DataTable con nueva configuración
         var pedidosTable = $('#pedidosTable').DataTable({
+            "processing": true,
             "scrollX": true,
-            "order": [[1, "desc"]],  // Índice 1 = columna "Orden"
-            "columnDefs": [
-                {
-                    "targets": [2],
-                    "visible": true,
-                    "searchable": true,
-                }
-            ],
+            "order": [[1, "desc"]], // Ordenar por número de orden descendente
+            "pageLength": 50, // Mostrar 50 registros por página
             "dom": 'Bfrtip',
-            "paging": false,         // Deshabilitar paginación
-            "lengthChange": false,   // Deshabilitar opción de cambiar longitud
-            "info": false,           // Ocultar texto de información
-            "processing": false,     // Deshabilitar indicador de carga
-            "serverSide": false,     // No usar paginación en servidor
             "buttons": [
                 {
-                    "extend": 'excelHtml5',
-                    "text": 'Excel',
-                    "title": 'Pedidos_' + new Date().toISOString().split('T')[0],
-                    "exportOptions": {
-                        "columns": [0, 1, 2, 3, 4, 5, 6]
-                    }
-                },
-                {
-                    "extend": 'csvHtml5',
-                    "text": 'CSV',
-                    "title": 'Pedidos_' + new Date().toISOString().split('T')[0],
-                    "exportOptions": {
-                        "columns": [0, 1, 2, 3, 4, 5, 6]
-                    }
-                },
-                {
-                    "extend": 'print',
-                    "text": 'Imprimir',
-                    "autoPrint": true,
-                    "exportOptions": {
-                        "columns": [0, 1, 2, 3, 4, 5, 6],
-                        "orientation": "landscape"
+                    extend: 'excel',
+                    text: 'Excel',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5,6,7,9]
                     },
-                    "customize": function (win) {
-                        $(win.document.body).css('font-size', '16pt');
-                        $(win.document.body).find('table')
-                            .addClass('compact')
-                            .css('font-size', 'inherit');
-                    }
+                    filename: 'Pedidos_' + new Date().toISOString().split('T')[0]
                 },
                 {
-                    "extend": 'pdfHtml5',
-                    "text": 'PDF',
-                    "filename": 'Pedidos_' + new Date().toISOString().split('T')[0],
-                    "pageSize": 'LETTER',
-                    "orientation": "landscape",
-                    "exportOptions": {
-                        "columns": [0, 1, 2, 3, 4, 5, 6]
-                    }
+                    extend: 'pdf',
+                    text: 'PDF',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5,6,7,9]
+                    },
+                    filename: 'Pedidos_' + new Date().toISOString().split('T')[0],
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL'
                 }
             ],
             "language": {
-                "info": "",          // Quitar "Mostrando registros del X al Y de Z"
-                "infoEmpty": "",     // Quitar texto cuando no hay registros
-                "infoFiltered": "",  // Quitar texto cuando hay filtrado
+                "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
+                "search": "Buscar:",
+                "info": "_TOTAL_ registros",
+                "infoEmpty": "0 registros",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
                 "paginate": {
-                    "next": "",
-                    "previous": ""
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
                 }
             },
-            "stateSave": true,
-            "stateDuration": 60 * 60 * 24, // 24 horas
-            "stateLoadParams": function (settings, data) {
-                data.order = [[1, "desc"]];
+            "initComplete": function(settings, json) {
+                // Ocultar el indicador de "processing" después de la carga inicial
+                $(this).DataTable().processing(false);
             }
         });
 
+        // Manejar cambios en los filtros
+        $('#filtroAno, #filtroMes').change(function() {
+            $('#filterForm').submit();
+        });
 
-        // Aplicar filtros existentes al cargar la página
-        var year = $('#filtroAno').val();
-        var month = $('#filtroMes').val();
-        if (year || month) {
-            pedidosTable.draw(); // Redibujar tabla con filtros aplicados
-        }
-    });
-
-    document.getElementById('filtroAno').addEventListener('change', function () {
-        document.getElementById('filterForm').submit();
-    });
-    document.getElementById('filtroMes').addEventListener('change', function () {
-        document.getElementById('filterForm').submit();
-    });
-
-    // Añadir evento al botón "Actual"
-    document.getElementById('actualButton').addEventListener('click', function () {
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1; // getMonth() es 0-indexado
-
-        document.getElementById('filtroAno').value = currentYear;
-        document.getElementById('filtroMes').value = currentMonth;
-
-        document.getElementById('filterForm').submit();
+        // Botón "Actual"
+        $('#actualButton').click(function() {
+            const now = new Date();
+            $('#filtroAno').val(now.getFullYear());
+            $('#filtroMes').val(now.getMonth() + 1);
+            $('#filterForm').submit();
+        });
     });
 </script>
 @stop
