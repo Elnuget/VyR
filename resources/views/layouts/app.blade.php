@@ -15,6 +15,11 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
+    <!-- Cargar CSS crítico primero -->
+    <link rel="stylesheet" href="{{ asset('css/critical.css') }}">
+    
+    <!-- Diferir carga de CSS no crítico -->
+    <link rel="preload" href="{{ asset('css/non-critical.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
     @livewireStyles
 
@@ -66,6 +71,28 @@
         </li>
         <!-- ...existing menu items... -->
     </ul>
+
+    <!-- Diferir carga de scripts no esenciales -->
+    <script defer src="{{ asset('js/non-critical.js') }}"></script>
+    
+    <!-- Precargar rutas comunes -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Precargar rutas comunes
+            let routes = [
+                '{{ route("inventario.index") }}',
+                '{{ route("pedidos.index") }}',
+                '{{ route("pagos.index") }}'
+            ];
+            
+            routes.forEach(route => {
+                let link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = route;
+                document.head.appendChild(link);
+            });
+        });
+    </script>
 </body>
 
 </html>

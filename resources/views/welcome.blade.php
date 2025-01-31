@@ -4,150 +4,128 @@
 
 @section('content_header')
     <h1 class="text-primary">
-        <i class="fas fa-tachometer-alt"></i> Dashboard
+        <i class="fas fa-home"></i> Bienvenido al Sistema de Gestión ÓPTICA
     </h1>
 @stop
 
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        @php
-            use App\Models\CashHistory;
-            $cashHistories = CashHistory::with('user')->latest()->get();
-            $lastCashHistory = \App\Models\CashHistory::latest()->first();
-        @endphp
-
-        @if($lastCashHistory && $lastCashHistory->estado !== 'Apertura')
-        <div class="alert alert-warning">
-            Advertencia: Debes abrir la caja antes de continuar.
-            <a href="{{ route('cash-histories.index') }}" class="btn btn-primary">Abrir Caja</a>
-        </div>
-        @endif
-
-        <div class="card shadow mb-3">
-            <div class="card-header bg-success text-white">
-                <h3 class="card-title">
-                    <i class="fas fa-cash-register"></i> Historial de Caja
-                </h3>
-            </div>
-            <div class="card-body">
-                <ul class="list-group">
-                    @foreach($cashHistories as $item)
-                        <li class="list-group-item">
-                            Monto: {{ $item->monto }} -
-                            Estado: {{ $item->estado }} 
-                            @if($item->user)
-                               - Usuario: {{ $item->user->name }}
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-
-        <!-- Caja de información (Info Box) para resaltar "Atajos del Sistema" -->
-        <div class="info-box mb-3 shadow-sm">
-            <span class="info-box-icon bg-info">
-                <i class="fas fa-keyboard"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Atajos del Sistema</span>
-                <span class="info-box-number">Tips para navegar más rápido</span>
-            </div>
-        </div>
-        
-        <!-- Tarjeta principal -->
-        <div class="card shadow">
-            <div class="card-header bg-info text-white">
-                <h3 class="card-title"><i class="fas fa-magic"></i> Detalles de Atajos</h3>
-            </div>
-            <div class="card-body">
-                <!-- Callout para dar una introducción o recomendaciones -->
-                <div class="callout callout-info">
-                    <h5><i class="fas fa-info-circle"></i> Información Importante</h5>
-                    <p>Aquí encontrarás los atajos de teclado disponibles para desplazarte más rápido en la aplicación. ¡Úsalos para ser más eficiente!</p>
+    {{-- Sección de Atajos --}}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-gradient-success">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-keyboard"></i> Atajos del Sistema</h3>
                 </div>
-
-                <!-- Lista de atajos con badges y códigos -->
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <span class="badge bg-primary">Inicio</span>
-                        <strong>Dashboard/Inicio:</strong>
-                        <code>(Tecla de Inicio)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-secondary">Anterior</span>
-                        <strong>Anterior:</strong>
-                        <code>(ALT + ←)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-secondary">Siguiente</span>
-                        <strong>Siguiente:</strong>
-                        <code>(ALT + →)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">1</span>
-                        <strong>Dashboard/Inicio:</strong>
-                        <code>(Tecla número 1)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">2</span>
-                        <strong>Admin:</strong>
-                        <code>(Tecla número 2)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">3</span>
-                        <strong>Pedidos:</strong>
-                        <code>(Tecla número 3)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">4</span>
-                        <strong>Pacientes:</strong>
-                        <code>(Tecla número 4)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">5</span>
-                        <strong>Inventario:</strong>
-                        <code>(Tecla número 5)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">6</span>
-                        <strong>Pago:</strong>
-                        <code>(Tecla número 6)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">7</span>
-                        <strong>Usuarios:</strong>
-                        <code>(Tecla número 7)</code>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="badge bg-info">8</span>
-                        <strong>Medio de pago:</strong>
-                        <code>(Tecla número 8)</code>
-                    </li>
-                </ul>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box bg-primary">
+                                <span class="info-box-icon"><i class="fas fa-plus-circle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Tecla [Inicio]</span>
+                                    <span class="info-box-number">Nuevo Pedido</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-file-medical"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Tecla [Fin]</span>
+                                    <span class="info-box-number">Nuevo Historial Clínico</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    {{-- Historial de Caja --}}
+    <div class="row">
+        <div class="col-12">
+            @php
+                use App\Models\CashHistory;
+                $cashHistories = CashHistory::with('user')->latest()->get();
+                $lastCashHistory = CashHistory::latest()->first();
+            @endphp
+
+            @if($lastCashHistory && $lastCashHistory->estado !== 'Apertura')
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle"></i> Advertencia: Debes abrir la caja antes de continuar.
+                    <a href="{{ route('cash-histories.index') }}" class="btn btn-primary ml-3">
+                        <i class="fas fa-cash-register"></i> Abrir Caja
+                    </a>
+                </div>
+            @endif
+
+            <div class="card">
+                <div class="card-header bg-secondary">
+                    <h3 class="card-title"><i class="fas fa-cash-register"></i> Historial de Caja</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cashHistories as $item)
+                                    <tr>
+                                        <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                                        <td>${{ number_format($item->monto, 2) }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ $item->estado === 'Apertura' ? 'success' : 'danger' }}">
+                                                {{ $item->estado }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $item->user->name ?? 'N/A' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
-    <!-- Puedes agregar aquí tus estilos personalizados -->
+    <style>
+        .info-box {
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .info-box:hover {
+            transform: scale(1.05);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+    </style>
 @stop
 
 @section('js')
+    @include('atajos')
     <script>
         $(document).ready(function() {
-            var rows = $('#historyTable tbody tr');
-            if (rows.length > 0) {
-                // Columna "Estado" asumiendo la posición 4
-                var estado = rows.first().find('td').eq(4).text().trim();
-                if (estado !== 'Apertura') {
-                    $('#cashOpenModal').modal('show');
-                }
-            }
+            // Animación inicial
+            $('.info-box').hide().fadeIn(1000);
         });
     </script>
-    @include('atajos')
 @stop

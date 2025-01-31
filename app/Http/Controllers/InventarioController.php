@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Inventario; // Asegúrate de importar el modelo Inventario
 use App\Models\Pedido; // Asegúrate de importar el modelo Pedido
+use Illuminate\Support\Facades\Cache;
 
 class InventarioController extends Controller
 {
@@ -21,28 +22,39 @@ class InventarioController extends Controller
      */
     public function index(Request $request)
     {
-        $lugares = Inventario::select('lugar')->distinct()->get();
-        $columnas = Inventario::select('columna')
+        // Obtener o crear el caché de lugares
+        $lugares = Cache::remember('lugares_inventario', 86400, function () {
+            return Inventario::select('lugar')->distinct()->get();
+        });
+
+        // Obtener o crear el caché de columnas
+        $columnas = Cache::remember('columnas_inventario', 86400, function () {
+            return Inventario::select('columna')
                         ->distinct()
                         ->orderBy('columna', 'asc')
                         ->get();
-        $inventario = [];
+        });
 
-        $fecha = $request->input('fecha');
-        $filtroLugar = $request->input('lugar');
-        $filtroColumna = $request->input('columna');
-
-        if ($fecha && $filtroLugar) {
-            $query = Inventario::where('fecha', 'like', $fecha . '%')
-                ->where('lugar', $filtroLugar);
+        // Optimizar consulta de inventario
+        $query = Inventario::query();
+        
+        if ($request->filled(['fecha', 'lugar'])) {
+            $query->where('fecha', 'like', $request->fecha . '%')
+                  ->where('lugar', $request->lugar);
             
-            if ($filtroColumna) {
-                $query->where('columna', $filtroColumna);
+            if ($request->filled('columna')) {
+                $query->where('columna', $request->columna);
             }
             
-            $inventario = $query->get();
+            // Seleccionar solo los campos necesarios
+            $inventario = $query->select('id', 'fecha', 'lugar', 'columna', 'numero', 'codigo', 'cantidad')
+                               ->get();
+                               
+            $totalCantidad = $inventario->sum('cantidad');
+        } else {
+            $inventario = collect();
+            $totalCantidad = 0;
         }
-        $totalCantidad = collect($inventario)->sum('cantidad');
 
         return view('inventario.index', compact('inventario', 'lugares', 'columnas', 'totalCantidad'));
     }

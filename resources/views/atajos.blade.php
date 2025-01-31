@@ -3,7 +3,9 @@
     document.addEventListener('keydown', function(event) {
         console.log(event.key);
         if (event.key === "Home") {
-            window.location.href = '/dashboard'; 
+            window.location.href = '{{ route("pedidos.create") }}'; // Crear nuevo pedido
+        } else if (event.key === "End") {
+            window.location.href = '{{ route("historiales_clinicos.create") }}'; // Nuevo historial clínico
         } else if (event.key === "1") {
             window.location.href = '/dashboard'; 
         }else if (event.key === "2") {

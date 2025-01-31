@@ -43,22 +43,26 @@
                     <label for="lugar">Lugar:</label>
                     <select class="form-control" name="lugar">
                         <option value="">Seleccionar Lugar</option>
-                        @foreach ($lugares->unique('lugar') as $item)
-                            <option value="{{ $item->lugar }}" {{ request('lugar') == $item->lugar ? 'selected' : '' }}>
-                                {{ $item->lugar }}
-                            </option>
-                        @endforeach
+                        @if($lugares)
+                            @foreach ($lugares as $item)
+                                <option value="{{ $item->lugar }}" {{ request('lugar') == $item->lugar ? 'selected' : '' }}>
+                                    {{ $item->lugar }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label for="columna">Columna:</label>
                     <select class="form-control" name="columna">
                         <option value="">Todas</option>
-                        @foreach ($columnas->unique('columna') as $col)
-                            <option value="{{ $col->columna }}" {{ request('columna') == $col->columna ? 'selected' : '' }}>
-                                {{ $col->columna }}
-                            </option>
-                        @endforeach
+                        @if($columnas)
+                            @foreach ($columnas as $col)
+                                <option value="{{ $col->columna }}" {{ request('columna') == $col->columna ? 'selected' : '' }}>
+                                    {{ $col->columna }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -71,7 +75,7 @@
                 </div>
             </form>
             <div class="table-responsive">
-                <table id="example" class="table table-striped table-bordered table-sm small">
+                <table id="inventarioTable" class="table table-striped table-bordered table-sm small">
                     <thead>
                         <tr class="text-sm">
                             <td>ID</td>
@@ -132,38 +136,38 @@
 @stop
 
 @section('js')
-
     @include('atajos')
-
     <script>
         $(document).ready(function() {
-            $('#example').DataTable({
-                "columnDefs": [ {
-                        "targets": [4],
+            // Inicializar DataTable con configuración
+            var inventarioTable = $('#inventarioTable').DataTable({
+                "scrollX": true,
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": [4], // Columna del código
                         "visible": true,
                         "searchable": true
-                    },
-                    {
-                        "targets": [0],
-                        "visible": false
-                    },
-                    {
-                        "targets": [1],
-                        "visible": false
-                    },
-                    {
-                        "targets": [2],
-                        "visible": false
-                    },
-                ],
-                "order": [
-                    [3, 'asc'],
-                    [4, 'asc']
+                    }
                 ],
                 "dom": 'Bfrtip',
                 "buttons": [
-                    'excelHtml5',
-                    'csvHtml5',
+                    {
+                        "extend": 'excelHtml5',
+                        "text": 'Excel',
+                        "title": 'Inventario_' + new Date().toISOString().split('T')[0],
+                        "exportOptions": {
+                            "columns": [1, 2, 3, 4, 5]
+                        }
+                    },
+                    {
+                        "extend": 'csvHtml5',
+                        "text": 'CSV',
+                        "title": 'Inventario_' + new Date().toISOString().split('T')[0],
+                        "exportOptions": {
+                            "columns": [1, 2, 3, 4, 5]
+                        }
+                    },
                     {
                         "extend": 'print',
                         "text": 'Imprimir',
@@ -181,7 +185,7 @@
                     {
                         "extend": 'pdfHtml5',
                         "text": 'PDF',
-                        "filename": 'Pagos.pdf',
+                        "filename": 'Inventario_' + new Date().toISOString().split('T')[0],
                         "pageSize": 'LETTER',
                         "exportOptions": {
                             "columns": [1, 2, 3, 4, 5]
@@ -189,12 +193,30 @@
                     }
                 ],
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json"
+                    "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
+                    "search": "Buscar:",
+                    "info": "",
+                    "infoEmpty": "",
+                    "infoFiltered": "",
+                    "paginate": {
+                        "next": "",
+                        "previous": ""
+                    }
                 },
-                "searching": false,
                 "paging": false,
-                "info": false
+                "info": false,
+                "searching": true,
+                "stateSave": true,
+                "stateDuration": 60 * 60 * 24, // 24 horas
+                "stateLoadParams": function(settings, data) {
+                    data.order = [[0, "desc"]];
+                }
             });
+
+            // Aplicar filtros existentes al cargar la página
+            if ($('input[name="fecha"]').val() || $('select[name="lugar"]').val()) {
+                inventarioTable.draw();
+            }
         });
     </script>
 @stop

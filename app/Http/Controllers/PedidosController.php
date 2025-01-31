@@ -21,17 +21,24 @@ class PedidosController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pedido::with(['aInventario', 'dInventario']);
+        $query = Pedido::query()
+            ->select('id', 'numero_orden', 'cliente', 'fecha', 'total', 'saldo')
+            ->with([
+                'aInventario:id,codigo,cantidad',
+                'dInventario:id,codigo,cantidad'
+            ]);
 
         if ($request->filled('ano')) {
-            $query->whereYear('fecha', '=', $request->ano);
+            $query->whereYear('fecha', $request->ano);
         }
 
         if ($request->filled('mes')) {
-            $query->whereMonth('fecha', '=', (int)$request->mes);
+            $query->whereMonth('fecha', $request->mes);
         }
 
-        $pedidos = $query->orderBy('numero_orden', 'desc')->get();
+        // Paginar resultados
+        $pedidos = $query->orderBy('numero_orden', 'desc')
+                         ->paginate(50);
 
         return view('pedidos.index', compact('pedidos'));
     }

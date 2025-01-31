@@ -94,7 +94,7 @@
                         </div>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table id="actualizarTable" class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -153,6 +153,76 @@
             const today = new Date();
             const fechaActual = today.toISOString().split('T')[0];
             document.getElementById('fecha').value = fechaActual;
+
+            // Inicializar DataTable
+            $('#actualizarTable').DataTable({
+                "scrollX": true,
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": [1], // Columna del código
+                        "searchable": true
+                    }
+                ],
+                "dom": 'Bfrtip',
+                "buttons": [
+                    {
+                        "extend": 'excelHtml5',
+                        "text": 'Excel',
+                        "title": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
+                        "exportOptions": {
+                            "columns": [0, 1, 2, 3, 4]
+                        }
+                    },
+                    {
+                        "extend": 'csvHtml5',
+                        "text": 'CSV',
+                        "title": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
+                        "exportOptions": {
+                            "columns": [0, 1, 2, 3, 4]
+                        }
+                    },
+                    {
+                        "extend": 'print',
+                        "text": 'Imprimir',
+                        "autoPrint": true,
+                        "exportOptions": {
+                            "columns": [0, 1, 2, 3, 4]
+                        },
+                        "customize": function(win) {
+                            $(win.document.body).css('font-size', '16pt');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    },
+                    {
+                        "extend": 'pdfHtml5',
+                        "text": 'PDF',
+                        "filename": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
+                        "pageSize": 'LETTER',
+                        "exportOptions": {
+                            "columns": [0, 1, 2, 3, 4]
+                        }
+                    }
+                ],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
+                    "search": "Buscar:",
+                    "info": "",
+                    "infoEmpty": "",
+                    "infoFiltered": "",
+                    "paginate": {
+                        "next": "",
+                        "previous": ""
+                    }
+                },
+                "paging": false,
+                "info": false,
+                "searching": true,
+                "stateSave": true,
+                "stateDuration": 60 * 60 * 24 // 24 horas
+            });
 
             editButtons.forEach(button => {
                 button.addEventListener('click', function() {
