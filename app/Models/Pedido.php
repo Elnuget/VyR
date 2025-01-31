@@ -78,4 +78,14 @@ class Pedido extends Model
     {
         return $this->hasMany(Pago::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Antes de eliminar el pedido, eliminar los pagos asociados
+        static::deleting(function($pedido) {
+            $pedido->pagos()->delete();
+        });
+    }
 }

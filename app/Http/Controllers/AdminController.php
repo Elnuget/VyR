@@ -18,67 +18,55 @@ class AdminController extends Controller
      */
     public function index(Request $request)
     {
-        // Establecer la zona horaria a la de Quito, Ecuador
-        $hoy = Carbon::now('America/Guayaquil');
+        try {
+            $hoy = Carbon::now('America/Guayaquil');
+            
+            // Obtener el año y mes seleccionados o usar los actuales
+            $selectedYear = $request->get('year', $hoy->year);
+            $selectedMonth = $request->get('month', $hoy->month);
 
-        // Obtener pedidos ordenados por fecha descendente
-        $pedidos = Pedido::orderBy('fecha', 'desc')->get();
+            // Construir la consulta base con los filtros
+            $query = Pedido::query();
+            $query->whereYear('fecha', $selectedYear);
+            
+            if ($selectedMonth) {
+                $query->whereMonth('fecha', $selectedMonth);
+            }
 
-        // Obtener datos de ventas por año
-        $salesData = Pedido::select(
-            DB::raw('YEAR(fecha) as year'),
-            DB::raw('SUM(total) as total')
-        )
-        ->groupBy('year')
-        ->orderBy('year', 'asc')
-        ->get()
-        ->pluck('total', 'year')
-        ->toArray();
+            // Obtener pedidos filtrados
+            $pedidos = $query->orderBy('fecha', 'desc')
+                ->take(10)
+                ->get();
 
-        $salesData = [
-            'years' => array_keys($salesData),
-            'totals' => array_values($salesData)
-        ];
+            // Obtener datos de ventas por año (esto no se filtra por mes)
+            $salesData = $this->getSalesData();
 
-        // Obtener el año seleccionado desde la solicitud o usar el más reciente
-        $selectedYear = $request->input('year', end($salesData['years']));
+            // Obtener datos de ventas mensuales para el año seleccionado
+            $salesDataMonthly = $this->getMonthlySalesData($selectedYear);
 
-        // Obtener datos de ventas por mes para el año seleccionado
-        $salesDataMonthly = Pedido::whereYear('fecha', $selectedYear)
-            ->select(
-                DB::raw('MONTH(fecha) as month'),
-                DB::raw('SUM(total) as total')
-            )
-            ->groupBy('month')
-            ->orderBy('month', 'asc')
-            ->get()
-            ->pluck('total', 'month')
-            ->toArray();
+            // Obtener datos de ventas por usuario con los filtros aplicados
+            $userSalesData = $this->getUserSalesData($selectedYear, $selectedMonth);
 
-        $salesDataMonthly = [
-            'months' => array_map(function($month) {
-                return DateTime::createFromFormat('!m', $month)->format('F');
-            }, array_keys($salesDataMonthly)),
-            'totals' => array_values($salesDataMonthly)
-        ];
+            // Obtener ventas por lugar con los filtros aplicados
+            $ventasPorLugar = $this->getVentasPorLugar($selectedYear, $selectedMonth);
 
-        // Obtener datos de ventas por usuario
-        $userSalesData = Pedido::select(
-            'usuario',
-            DB::raw('SUM(total) as total')
-        )
-        ->groupBy('usuario')
-        ->orderBy('total', 'desc')
-        ->get()
-        ->pluck('total', 'usuario')
-        ->toArray();
-
-        $userSalesData = [
-            'users' => array_keys($userSalesData),
-            'totals' => array_values($userSalesData)
-        ];
-
-        return view('admin.index', compact('pedidos', 'salesData', 'salesDataMonthly', 'selectedYear', 'userSalesData'));
+            return view('admin.index', compact(
+                'pedidos',
+                'salesData',
+                'salesDataMonthly',
+                'userSalesData',
+                'selectedYear',
+                'selectedMonth',
+                'ventasPorLugar'
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Error en AdminController@index: ' . $e->getMessage());
+            return back()->with([
+                'error' => 'Error',
+                'mensaje' => 'Error al cargar el dashboard: ' . $e->getMessage(),
+                'tipo' => 'alert-danger'
+            ]);
+        }
     }
 
     /**
@@ -145,5 +133,105 @@ class AdminController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function getSalesData()
+    {
+        $salesData = Pedido::select(
+            DB::raw('YEAR(fecha) as year'),
+            DB::raw('SUM(total) as total')
+        )
+        ->groupBy('year')
+        ->orderBy('year', 'asc')
+        ->get()
+        ->pluck('total', 'year')
+        ->toArray();
+
+        return [
+            'years' => array_keys($salesData) ?: [now()->year],
+            'totals' => array_values($salesData) ?: [0]
+        ];
+    }
+
+    private function getMonthlySalesData($year)
+    {
+        $salesDataMonthly = Pedido::whereYear('fecha', $year)
+            ->select(
+                DB::raw('MONTH(fecha) as month'),
+                DB::raw('SUM(total) as total')
+            )
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->get()
+            ->pluck('total', 'month')
+            ->toArray();
+
+        // Asegurar que tenemos datos para todos los meses
+        $months = [];
+        $totals = [];
+        
+        for ($i = 1; $i <= 12; $i++) {
+            $months[] = DateTime::createFromFormat('!m', $i)->format('F');
+            $totals[] = $salesDataMonthly[$i] ?? 0;
+        }
+
+        return [
+            'months' => $months,
+            'totals' => $totals
+        ];
+    }
+
+    private function getUserSalesData($year = null, $month = null)
+    {
+        $query = Pedido::select(
+            'usuario',
+            DB::raw('SUM(total) as total')
+        )
+        ->whereNotNull('usuario');
+
+        if ($year) {
+            $query->whereYear('fecha', $year);
+        }
+        
+        if ($month) {
+            $query->whereMonth('fecha', $month);
+        }
+
+        $userSalesData = $query->groupBy('usuario')
+            ->orderBy('total', 'desc')
+            ->get()
+            ->pluck('total', 'usuario')
+            ->toArray();
+
+        return [
+            'users' => array_keys($userSalesData) ?: ['Sin ventas'],
+            'totals' => array_values($userSalesData) ?: [0]
+        ];
+    }
+
+    private function getVentasPorLugar($year, $month = null)
+    {
+        $query = DB::table('pedido_inventario as pi')
+            ->join('inventarios as i', 'pi.inventario_id', '=', 'i.id')
+            ->join('pedidos as p', 'pi.pedido_id', '=', 'p.id')
+            ->select('i.lugar', 
+                    DB::raw('COUNT(*) as cantidad_vendida'),
+                    DB::raw('SUM(pi.precio) as total_ventas'))
+            ->whereYear('p.fecha', $year);
+
+        if ($month) {
+            $query->whereMonth('p.fecha', $month);
+        }
+
+        $result = $query->whereNotNull('i.lugar')
+            ->groupBy('i.lugar')
+            ->orderBy('cantidad_vendida', 'desc')
+            ->get();
+
+        return $result->isEmpty() ? collect([(object)[
+            'lugar' => 'Sin ventas',
+            'cantidad_vendida' => 0,
+            'total_ventas' => 0
+        ]]) : $result;
     }
 }

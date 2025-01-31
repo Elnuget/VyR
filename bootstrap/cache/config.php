@@ -401,6 +401,7 @@
       25 => 'App\\Providers\\RouteServiceProvider',
       26 => 'App\\Providers\\FortifyServiceProvider',
       27 => 'App\\Providers\\JetstreamServiceProvider',
+      28 => 'App\\Providers\\CacheServiceProvider',
     ),
     'aliases' => 
     array (

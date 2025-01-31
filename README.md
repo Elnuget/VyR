@@ -13,6 +13,8 @@ php artisan config:clear
 php artisan config:cache
 php artisan route:clear
 php artisan route:cache
+
+
 para actualizar repositorio
 git reset --hard origin/master
 git pull origin master

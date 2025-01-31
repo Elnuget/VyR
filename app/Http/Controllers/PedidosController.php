@@ -358,18 +358,37 @@ class PedidosController extends Controller
     public function destroy($id)
     {
         try {
+            \DB::beginTransaction();
+            
             $pedido = Pedido::findOrFail($id);
+            
+            // Eliminar registros de caja relacionados con los pagos
+            foreach ($pedido->pagos as $pago) {
+                if ($pago->mediodepago_id == 1) { // Si es pago en efectivo
+                    \App\Models\Caja::where([
+                        ['valor', '=', $pago->pago],
+                        ['motivo', 'like', 'Abono ' . $pedido->cliente . '%']
+                    ])->delete();
+                }
+            }
+
+            // La eliminación de pagos se maneja automáticamente por el modelo
             $pedido->delete();
+
+            \DB::commit();
 
             return redirect('/Pedidos')->with([
                 'error' => 'Exito',
-                'mensaje' => 'Pedido eliminado exitosamente',
+                'mensaje' => 'Pedido y sus pagos asociados eliminados exitosamente',
                 'tipo' => 'alert-success'
             ]);
         } catch (\Exception $e) {
+            \DB::rollback();
+            \Log::error('Error eliminando pedido: ' . $e->getMessage());
+            
             return redirect('/Pedidos')->with([
                 'error' => 'Error',
-                'mensaje' => 'No se puede eliminar el pedido porque tiene registros de pagos asociados. Por favor, elimine los pagos antes de intentar eliminar el pedido.',
+                'mensaje' => 'Error al eliminar el pedido: ' . $e->getMessage(),
                 'tipo' => 'alert-danger'
             ]);
         }

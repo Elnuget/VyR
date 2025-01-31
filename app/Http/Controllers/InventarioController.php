@@ -22,41 +22,53 @@ class InventarioController extends Controller
      */
     public function index(Request $request)
     {
-        // Obtener o crear el caché de lugares
-        $lugares = Cache::remember('lugares_inventario', 86400, function () {
-            return Inventario::select('lugar')->distinct()->get();
-        });
+        try {
+            // Obtener todos los lugares distintos de la tabla inventario
+            $lugares = Inventario::select('lugar')
+                ->distinct()
+                ->orderBy('lugar')
+                ->get();
 
-        // Obtener o crear el caché de columnas
-        $columnas = Cache::remember('columnas_inventario', 86400, function () {
-            return Inventario::select('columna')
-                        ->distinct()
-                        ->orderBy('columna', 'asc')
-                        ->get();
-        });
+            // Obtener todas las columnas distintas de la tabla inventario
+            $columnas = Inventario::select('columna')
+                ->distinct()
+                ->orderBy('columna')
+                ->get();
 
-        // Optimizar consulta de inventario
-        $query = Inventario::query();
-        
-        if ($request->filled(['fecha', 'lugar'])) {
-            $query->where('fecha', 'like', $request->fecha . '%')
-                  ->where('lugar', $request->lugar);
+            // Construir la consulta del inventario con filtros
+            $query = Inventario::query();
             
-            if ($request->filled('columna')) {
-                $query->where('columna', $request->columna);
+            if ($request->filled(['fecha', 'lugar'])) {
+                $query->where('fecha', 'like', $request->fecha . '%');
+                
+                if ($request->lugar) {
+                    $query->where('lugar', $request->lugar);
+                }
+                
+                if ($request->filled('columna')) {
+                    $query->where('columna', $request->columna);
+                }
+                
+                $inventario = $query->select('id', 'fecha', 'lugar', 'columna', 'numero', 'codigo', 'cantidad')
+                                   ->orderBy('fecha', 'desc')
+                                   ->get();
+                                   
+                $totalCantidad = $inventario->sum('cantidad');
+            } else {
+                $inventario = collect();
+                $totalCantidad = 0;
             }
-            
-            // Seleccionar solo los campos necesarios
-            $inventario = $query->select('id', 'fecha', 'lugar', 'columna', 'numero', 'codigo', 'cantidad')
-                               ->get();
-                               
-            $totalCantidad = $inventario->sum('cantidad');
-        } else {
-            $inventario = collect();
-            $totalCantidad = 0;
-        }
 
-        return view('inventario.index', compact('inventario', 'lugares', 'columnas', 'totalCantidad'));
+            return view('inventario.index', compact('inventario', 'lugares', 'columnas', 'totalCantidad'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en InventarioController@index: ' . $e->getMessage());
+            return back()->with([
+                'error' => 'Error',
+                'mensaje' => 'Error al cargar el inventario: ' . $e->getMessage(),
+                'tipo' => 'alert-danger'
+            ]);
+        }
     }
 
     /**

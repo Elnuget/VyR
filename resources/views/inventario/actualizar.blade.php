@@ -8,11 +8,11 @@
 
 @section('content')
     <div class="row">
-        {{-- Tarjeta de Edición (Izquierda) --}}
+        {{-- Tarjeta de Creación (Izquierda) --}}
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Editar Artículo</h3>
+                    <h3 class="card-title">Crear Nuevo Artículo</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
                             <i class="fas fa-minus"></i>
@@ -20,9 +20,8 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form role="form" action="{{ route('inventario.update', '') }}" method="POST" id="editForm">
+                    <form role="form" action="{{ route('inventario.store') }}" method="POST">
                         @csrf
-                        @method('PUT')
 
                         <div class="form-group">
                             <label>Fecha</label>
@@ -69,8 +68,12 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="{{ route('inventario.index') }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Crear Artículo
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Limpiar
+                        </button>
                     </form>
                 </div>
             </div>
@@ -115,8 +118,7 @@
                                             <td>{{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</td>
                                             <td>
                                                 <button type="button" 
-                                                        class="btn btn-sm btn-primary edit-btn"
-                                                        data-id="{{ $item->id }}"
+                                                        class="btn btn-sm btn-primary fill-form"
                                                         data-fecha="{{ $item->fecha }}"
                                                         data-lugar="{{ $item->lugar }}"
                                                         data-columna="{{ $item->columna }}"
@@ -124,7 +126,7 @@
                                                         data-codigo="{{ $item->codigo }}"
                                                         data-valor="{{ $item->valor }}"
                                                         data-cantidad="{{ $item->cantidad }}">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="fas fa-copy"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -146,66 +148,34 @@
 @section('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const editButtons = document.querySelectorAll('.edit-btn');
-            const form = document.getElementById('editForm');
-
             // Establecer la fecha actual al cargar la página
             const today = new Date();
             const fechaActual = today.toISOString().split('T')[0];
             document.getElementById('fecha').value = fechaActual;
 
+            // Agregar evento a los botones de llenar formulario
+            document.querySelectorAll('.fill-form').forEach(button => {
+                button.addEventListener('click', function() {
+                    const data = this.dataset;
+                    
+                    // Llenar los campos del formulario
+                    document.getElementById('fecha').value = data.fecha;
+                    document.getElementById('lugar').value = data.lugar;
+                    document.getElementById('columna').value = data.columna;
+                    document.getElementById('numero').value = data.numero;
+                    document.getElementById('codigo').value = data.codigo;
+                    document.getElementById('valor').value = data.valor || '';
+                    document.getElementById('cantidad').value = data.cantidad;
+
+                    // Hacer scroll al formulario
+                    document.querySelector('.card-title').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
             // Inicializar DataTable
             $('#actualizarTable').DataTable({
                 "scrollX": true,
                 "order": [[0, "desc"]],
-                "columnDefs": [
-                    {
-                        "targets": [1], // Columna del código
-                        "searchable": true
-                    }
-                ],
-                "dom": 'Bfrtip',
-                "buttons": [
-                    {
-                        "extend": 'excelHtml5',
-                        "text": 'Excel',
-                        "title": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
-                        "exportOptions": {
-                            "columns": [0, 1, 2, 3, 4]
-                        }
-                    },
-                    {
-                        "extend": 'csvHtml5',
-                        "text": 'CSV',
-                        "title": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
-                        "exportOptions": {
-                            "columns": [0, 1, 2, 3, 4]
-                        }
-                    },
-                    {
-                        "extend": 'print',
-                        "text": 'Imprimir',
-                        "autoPrint": true,
-                        "exportOptions": {
-                            "columns": [0, 1, 2, 3, 4]
-                        },
-                        "customize": function(win) {
-                            $(win.document.body).css('font-size', '16pt');
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    },
-                    {
-                        "extend": 'pdfHtml5',
-                        "text": 'PDF',
-                        "filename": 'Inventario_Actualizar_' + new Date().toISOString().split('T')[0],
-                        "pageSize": 'LETTER',
-                        "exportOptions": {
-                            "columns": [0, 1, 2, 3, 4]
-                        }
-                    }
-                ],
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
                     "search": "Buscar:",
@@ -224,27 +194,11 @@
                 "stateDuration": 60 * 60 * 24 // 24 horas
             });
 
-            editButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const data = this.dataset;
-                    
-                    // Actualizar la URL del formulario
-                    form.action = "{{ route('inventario.update', '') }}/" + data.id;
-                    
-                    // Mantener la fecha actual en lugar de cargar la fecha del artículo
+            // Limpiar formulario al hacer clic en el botón reset
+            document.querySelector('button[type="reset"]').addEventListener('click', function() {
+                setTimeout(() => {
                     document.getElementById('fecha').value = fechaActual;
-                    
-                    // Llenar los demás campos del formulario
-                    document.getElementById('lugar').value = data.lugar;
-                    document.getElementById('columna').value = data.columna;
-                    document.getElementById('numero').value = data.numero;
-                    document.getElementById('codigo').value = data.codigo;
-                    document.getElementById('valor').value = data.valor || '';
-                    document.getElementById('cantidad').value = data.cantidad;
-
-                    // Hacer scroll al formulario
-                    document.querySelector('.card-title').scrollIntoView({ behavior: 'smooth' });
-                });
+                }, 1);
             });
         });
     </script>
