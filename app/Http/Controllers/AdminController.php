@@ -19,36 +19,58 @@ class AdminController extends Controller
     public function index(Request $request)
     {
         try {
+            // Primero verificar la conexión a la base de datos
+            try {
+                DB::connection()->getPdo();
+            } catch (\Exception $e) {
+                \Log::error('Error de conexión a la base de datos: ' . $e->getMessage());
+                return back()->with([
+                    'error' => 'Error de Conexión',
+                    'mensaje' => 'No se pudo conectar a la base de datos. Por favor, contacte al administrador.',
+                    'tipo' => 'alert-danger'
+                ]);
+            }
+
             $hoy = Carbon::now('America/Guayaquil');
             
             // Obtener el año y mes seleccionados o usar los actuales
             $selectedYear = $request->get('year', $hoy->year);
             $selectedMonth = $request->get('month', $hoy->month);
 
-            // Construir la consulta base con los filtros
-            $query = Pedido::query();
-            $query->whereYear('fecha', $selectedYear);
-            
-            if ($selectedMonth) {
-                $query->whereMonth('fecha', $selectedMonth);
+            // Inicializar variables con valores por defecto en caso de error
+            $pedidos = collect();
+            $salesData = ['years' => [$hoy->year], 'totals' => [0]];
+            $salesDataMonthly = ['months' => [], 'totals' => []];
+            $userSalesData = ['users' => ['Sin datos'], 'totals' => [0]];
+            $ventasPorLugar = collect([(object)[
+                'lugar' => 'Sin datos',
+                'cantidad_vendida' => 0,
+                'total_ventas' => 0
+            ]]);
+
+            // Intentar obtener los datos
+            try {
+                // Construir la consulta base con los filtros
+                $query = Pedido::query();
+                $query->whereYear('fecha', $selectedYear);
+                
+                if ($selectedMonth) {
+                    $query->whereMonth('fecha', $selectedMonth);
+                }
+
+                $pedidos = $query->orderBy('fecha', 'desc')
+                    ->take(10)
+                    ->get();
+
+                $salesData = $this->getSalesData();
+                $salesDataMonthly = $this->getMonthlySalesData($selectedYear);
+                $userSalesData = $this->getUserSalesData($selectedYear, $selectedMonth);
+                $ventasPorLugar = $this->getVentasPorLugar($selectedYear, $selectedMonth);
+
+            } catch (\Exception $e) {
+                \Log::error('Error obteniendo datos: ' . $e->getMessage());
+                // No retornamos error aquí, seguimos con los datos por defecto
             }
-
-            // Obtener pedidos filtrados
-            $pedidos = $query->orderBy('fecha', 'desc')
-                ->take(10)
-                ->get();
-
-            // Obtener datos de ventas por año (esto no se filtra por mes)
-            $salesData = $this->getSalesData();
-
-            // Obtener datos de ventas mensuales para el año seleccionado
-            $salesDataMonthly = $this->getMonthlySalesData($selectedYear);
-
-            // Obtener datos de ventas por usuario con los filtros aplicados
-            $userSalesData = $this->getUserSalesData($selectedYear, $selectedMonth);
-
-            // Obtener ventas por lugar con los filtros aplicados
-            $ventasPorLugar = $this->getVentasPorLugar($selectedYear, $selectedMonth);
 
             return view('admin.index', compact(
                 'pedidos',
@@ -59,11 +81,12 @@ class AdminController extends Controller
                 'selectedMonth',
                 'ventasPorLugar'
             ));
+
         } catch (\Exception $e) {
-            \Log::error('Error en AdminController@index: ' . $e->getMessage());
+            \Log::error('Error general en AdminController@index: ' . $e->getMessage());
             return back()->with([
                 'error' => 'Error',
-                'mensaje' => 'Error al cargar el dashboard: ' . $e->getMessage(),
+                'mensaje' => 'Error al cargar el dashboard. Por favor, intente de nuevo más tarde.',
                 'tipo' => 'alert-danger'
             ]);
         }
@@ -211,27 +234,37 @@ class AdminController extends Controller
 
     private function getVentasPorLugar($year, $month = null)
     {
-        $query = DB::table('pedido_inventario as pi')
-            ->join('inventarios as i', 'pi.inventario_id', '=', 'i.id')
-            ->join('pedidos as p', 'pi.pedido_id', '=', 'p.id')
-            ->select('i.lugar', 
-                    DB::raw('COUNT(*) as cantidad_vendida'),
-                    DB::raw('SUM(pi.precio) as total_ventas'))
-            ->whereYear('p.fecha', $year);
+        try {
+            $query = DB::table('pedido_inventario as pi')
+                ->join('inventarios as i', 'pi.inventario_id', '=', 'i.id')
+                ->join('pedidos as p', 'pi.pedido_id', '=', 'p.id')
+                ->select('i.lugar', 
+                        DB::raw('COUNT(*) as cantidad_vendida'),
+                        DB::raw('SUM(pi.precio) as total_ventas'))
+                ->whereYear('p.fecha', $year);
 
-        if ($month) {
-            $query->whereMonth('p.fecha', $month);
+            if ($month) {
+                $query->whereMonth('p.fecha', $month);
+            }
+
+            $result = $query->whereNotNull('i.lugar')
+                ->groupBy('i.lugar')
+                ->orderBy('cantidad_vendida', 'desc')
+                ->get();
+
+            return $result->isEmpty() ? collect([(object)[
+                'lugar' => 'Sin ventas',
+                'cantidad_vendida' => 0,
+                'total_ventas' => 0
+            ]]) : $result;
+
+        } catch (\Exception $e) {
+            \Log::error('Error en getVentasPorLugar: ' . $e->getMessage());
+            return collect([(object)[
+                'lugar' => 'Error al cargar datos',
+                'cantidad_vendida' => 0,
+                'total_ventas' => 0
+            ]]);
         }
-
-        $result = $query->whereNotNull('i.lugar')
-            ->groupBy('i.lugar')
-            ->orderBy('cantidad_vendida', 'desc')
-            ->get();
-
-        return $result->isEmpty() ? collect([(object)[
-            'lugar' => 'Sin ventas',
-            'cantidad_vendida' => 0,
-            'total_ventas' => 0
-        ]]) : $result;
     }
 }
