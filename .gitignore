@@ -16,4 +16,7 @@ yarn-error.log
 /.idea
 /.vscode
 requerimientos.txt
+/bootstrap/cache
+/storage/framework
+/storage/logs
 

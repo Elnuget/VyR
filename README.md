@@ -18,6 +18,8 @@ php artisan route:cache
 para actualizar repositorio
 git reset --hard origin/master
 git pull origin master
+sudo chmod 777 storage/logs/ -R
+sudo chmod 777 storage/ -R
 php artisan config:clear
 php artisan config:cache
 php artisan route:clear
