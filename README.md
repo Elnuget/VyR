@@ -20,7 +20,21 @@ git reset --hard origin/master
 git pull origin master
 sudo chmod 777 storage/logs/ -R
 sudo chmod 777 storage/ -R
-php artisan config:clear
-php artisan config:cache
-php artisan route:clear
-php artisan route:cache
+sudo service php8.3-fpm restart
+sudo service nginx restart
+sudo php artisan config:clear
+sudo php artisan config:cache
+sudo php artisan route:clear
+sudo php artisan route:cache
+
+
+ALTER TABLE `caja` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `cash_histories` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `historiales_clinicos` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `inventarios` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `mediosdepagos` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `pagos` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `pedidos` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `pedido_inventario` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `pedido_lunas` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
+ALTER TABLE `users` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;

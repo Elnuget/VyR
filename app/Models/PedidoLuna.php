@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PedidoLuna extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'pedido_lunas';
+    protected $dates = ['deleted_at'];
+
     protected $fillable = [
         'pedido_id',
         'l_medida',

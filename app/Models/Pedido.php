@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pedido extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     // Especifica los campos que pueden ser asignados masivamente
     protected $fillable = [
@@ -37,10 +38,7 @@ class Pedido extends Model
         'usuario' // ...added usuario...
     ];
 
-    protected $dates = [
-        'fecha',
-        // ...other date fields...
-    ];
+    protected $dates = ['deleted_at', 'fecha'];
 
     protected $casts = [
         'fecha' => 'datetime',
@@ -64,6 +62,7 @@ class Pedido extends Model
     public function inventarios()
     {
         return $this->belongsToMany(Inventario::class, 'pedido_inventario')
+                    ->using(PedidoInventario::class)
                     ->withPivot(['precio', 'descuento'])
                     ->withTimestamps();
     }

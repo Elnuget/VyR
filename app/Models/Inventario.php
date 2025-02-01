@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Inventario extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-   
-    protected $fillable =[
+    protected $fillable = [
         'id',
         'fecha',
         'lugar',
@@ -22,6 +22,8 @@ class Inventario extends Model
         'cantidad',
         'orden'
     ];
+
+    protected $dates = ['deleted_at'];
 
     public $timestamps = true;
 
@@ -40,6 +42,7 @@ class Inventario extends Model
     public function pedidos()
     {
         return $this->belongsToMany(Pedido::class, 'pedido_inventario')
+                    ->using(PedidoInventario::class)
                     ->withPivot(['precio', 'descuento'])
                     ->withTimestamps();
     }
