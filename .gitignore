@@ -20,5 +20,5 @@ requerimientos.txt
 /storage/framework
 /storage/logs
 
-bootstrap/cache/config.php
-bootstrap/cache/routes-v7.php
+/bootstrap/cache/config.php
+/bootstrap/cache/routes-v7.php
