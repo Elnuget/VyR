@@ -129,4 +129,144 @@ class HistorialClinicoController extends Controller
         $historialClinico->delete();
         return redirect()->route('historiales_clinicos.index');
     }
+
+    public function enviarWhatsapp($id)
+    {
+        try {
+            $historialClinico = HistorialClinico::findOrFail($id);
+            
+            // Constantes personalizables
+            $DESCUENTO_MONTURA = 15;
+            $DIAS_VALIDEZ = 15;
+            $TELEFONO_OPTICA = "(02) 234-5678";
+            $DIRECCION_OPTICA = "Av. Principal 123, Quito";
+            $NOMBRE_OPTICA = "Escleróptica";
+            $HORARIO_ATENCION = "Lunes a Viernes de 09:00 a 18:00";
+            
+            // Debug para ver qué datos estamos recibiendo
+            Log::info('Datos del historial:', [
+                'id' => $id,
+                'celular' => $historialClinico->celular,
+                'nombres' => $historialClinico->nombres
+            ]);
+
+            // Verificar si tiene número de celular y nombres
+            if (!$historialClinico->celular) {
+                return redirect()->back()
+                    ->with('error', 'El paciente no tiene número de celular registrado.')
+                    ->with('tipo', 'alert-danger');
+            }
+
+            // Formatear el número de teléfono (eliminar espacios y caracteres especiales)
+            $telefono = preg_replace('/[^0-9]/', '', $historialClinico->celular);
+            
+            // Si el número empieza con 0, quitarlo
+            if (substr($telefono, 0, 1) === '0') {
+                $telefono = substr($telefono, 1);
+            }
+            
+            // Agregar el código de país
+            $telefono = "593" . $telefono;
+            
+            // Debug para ver el número formateado
+            Log::info('Número formateado:', ['telefono' => $telefono]);
+            
+            // Construir el mensaje formal
+            $mensaje = "*¡Feliz Cumpleaños!*\n\n";
+            $mensaje .= "Estimado/a {$historialClinico->nombres}:\n\n";
+            
+            // Mensaje principal formal
+            $mensaje .= "Reciba un cordial saludo de parte de {$NOMBRE_OPTICA}. En este día especial, queremos expresarle nuestros mejores deseos de bienestar y felicidad.\n\n";
+
+            // Recordatorio de salud visual (condicional)
+            if ($historialClinico->fecha) {
+                $ultimaConsulta = \Carbon\Carbon::parse($historialClinico->fecha);
+                $mesesDesdeUltimaConsulta = $ultimaConsulta->diffInMonths(now());
+                
+                if ($mesesDesdeUltimaConsulta > 6) {
+                    $mensaje .= "Le recordamos que han transcurrido {$mesesDesdeUltimaConsulta} meses desde su última revisión visual. La salud de sus ojos es nuestra prioridad.\n\n";
+                }
+            }
+
+            // Beneficios de cumpleaños
+            $mensaje .= "*Beneficios especiales por su cumpleaños:*\n";
+            $mensaje .= "• {$DESCUENTO_MONTURA}% de descuento en monturas seleccionadas\n";
+            $mensaje .= "• Examen visual sin costo\n";
+            $mensaje .= "• Mantenimiento gratuito de sus lentes\n\n";
+            
+            // Validez
+            $fechaLimite = now()->addDays($DIAS_VALIDEZ)->format('d/m/Y');
+            $mensaje .= "Estos beneficios están disponibles hasta el {$fechaLimite}.\n\n";
+
+            // Información de contacto
+            $mensaje .= "*Información de contacto:*\n";
+            $mensaje .= "Teléfono: {$TELEFONO_OPTICA}\n";
+            $mensaje .= "Dirección: {$DIRECCION_OPTICA}\n";
+            $mensaje .= "Horario: {$HORARIO_ATENCION}\n\n";
+
+            // Despedida formal
+            $mensaje .= "Atentamente,\n";
+            $mensaje .= "El equipo de {$NOMBRE_OPTICA}\n";
+            $mensaje .= "_Comprometidos con su salud visual_";
+
+            // Codificar el mensaje para URL
+            $mensajeCodificado = urlencode($mensaje);
+
+            // Generar el enlace de WhatsApp
+            $whatsappUrl = "https://wa.me/{$telefono}?text={$mensajeCodificado}";
+
+            // Debug para ver la URL final
+            Log::info('URL de WhatsApp:', ['url' => $whatsappUrl]);
+
+            // Redireccionar a WhatsApp
+            return redirect()->away($whatsappUrl);
+
+        } catch (\Exception $e) {
+            Log::error('Error al enviar WhatsApp: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al intentar enviar el mensaje de WhatsApp: ' . $e->getMessage())
+                ->with('tipo', 'alert-danger');
+        }
+    }
+
+    public function cumpleanos()
+    {
+        try {
+            // Obtener la fecha actual
+            $hoy = now();
+            
+            // Obtener todos los historiales con fecha de nacimiento
+            $cumpleaneros = HistorialClinico::whereNotNull('fecha_nacimiento')
+                ->whereRaw('DATE_FORMAT(fecha_nacimiento, "%m-%d") = ?', [$hoy->format('m-d')])
+                ->with('usuario')
+                ->orderBy('nombres')
+                ->get()
+                ->map(function ($paciente) {
+                    $fechaNacimiento = \Carbon\Carbon::parse($paciente->fecha_nacimiento);
+                    $edad = $fechaNacimiento->age;
+                    $ultimaConsulta = $paciente->fecha ? \Carbon\Carbon::parse($paciente->fecha)->format('d/m/Y') : 'Sin consultas';
+                    
+                    return [
+                        'id' => $paciente->id,
+                        'nombres' => $paciente->nombres,
+                        'apellidos' => $paciente->apellidos,
+                        'fecha_nacimiento' => $fechaNacimiento->format('d/m/Y'),
+                        'edad' => $edad,
+                        'celular' => $paciente->celular,
+                        'ultima_consulta' => $ultimaConsulta,
+                        'motivo_consulta' => $paciente->motivo_consulta
+                    ];
+                });
+            
+            // Asegurarnos de que se use la vista de cumpleaños
+            return view('historiales_clinicos.cumpleanos', [
+                'cumpleaneros' => $cumpleaneros,
+                'fecha_actual' => $hoy->format('d/m/Y')
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error al obtener cumpleañeros: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al cargar los cumpleañeros.');
+        }
+    }
 }

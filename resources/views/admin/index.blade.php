@@ -212,6 +212,26 @@
             </form>
         </div>
     </div>
+
+    {{-- Modificar la sección de puntuaciones para hacerla colapsable --}}
+    <div class="card collapsed-card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-star mr-1"></i>
+                Puntuaciones por Usuario
+            </h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body" style="display: none;">
+            <div class="chart">
+                <canvas id="puntuacionesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -415,6 +435,73 @@
                                 text: 'Total Ventas ($)'
                             }
                         }
+                    }
+                }
+            });
+
+            // Gráfico de Puntuaciones
+            var puntuacionesCtx = document.getElementById('puntuacionesChart').getContext('2d');
+            new Chart(puntuacionesCtx, {
+                type: 'bar',
+                data: {
+                    labels: @json($datosGraficoPuntuaciones['usuarios']),
+                    datasets: [
+                        {
+                            label: 'Promedio de Calificación',
+                            data: @json($datosGraficoPuntuaciones['promedios']),
+                            backgroundColor: 'rgba(255, 215, 0, 0.5)',
+                            borderColor: 'rgba(255, 215, 0, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y-axis-1'
+                        },
+                        {
+                            label: 'Total Calificaciones',
+                            data: @json($datosGraficoPuntuaciones['totales']),
+                            type: 'line',
+                            fill: false,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            yAxisID: 'y-axis-2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        yAxes: [
+                            {
+                                id: 'y-axis-1',
+                                type: 'linear',
+                                position: 'left',
+                                ticks: {
+                                    max: 5,
+                                    min: 0
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Promedio'
+                                }
+                            },
+                            {
+                                id: 'y-axis-2',
+                                type: 'linear',
+                                position: 'right',
+                                ticks: {
+                                    min: 0
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Total Calificaciones'
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false
                     }
                 }
             });

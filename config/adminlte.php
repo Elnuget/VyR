@@ -292,9 +292,16 @@ return [
 
         [
             'text' => 'Historiales Clínicos',
-            'icon' => 'fas fa-notes-medical', // Puedes cambiar el ícono según prefieras
+            'icon' => 'fas fa-notes-medical',
             'route' => 'historiales_clinicos.index',
-            'active' => ['historiales_clinicos/*'], // Asegúrate de que esto coincida con tus rutas nombradas en Laravel
+        ],
+
+        [
+            'text' => 'Mensajes WhatsApp',
+            'icon' => 'fab fa-whatsapp',
+            'route' => 'historiales_clinicos.cumpleanos',
+            'label' => 'Cumpleaños',
+            'label_color' => 'success'
         ],
 
         [
@@ -317,6 +324,16 @@ return [
                 ],
             ],
         ],
+
+        // Eliminar o comentar esta sección del menú
+        /*
+        [
+            'text' => 'Puntuaciones Usuarios',
+            'route'  => 'admin.puntuaciones',
+            'icon' => 'fas fa-star',
+            'can' => 'admin',
+        ],
+        */
 
     ],
     /*

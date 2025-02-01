@@ -35,7 +35,9 @@ class Pedido extends Model
         'filtro',
         'valor_compra',
         'motivo_compra',
-        'usuario' // ...added usuario...
+        'usuario', // ...added usuario...
+        'calificacion',
+        'comentario_calificacion'
     ];
 
     protected $dates = ['deleted_at', 'fecha'];

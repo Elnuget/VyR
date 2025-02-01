@@ -81,7 +81,7 @@
         <!-- Previously here, now removed -->
 
         <div class="table-responsive">
-            <table id="pedidosTable" class="table table-striped table-bordered table-responsive">
+            <table id="pedidosTable" class="table table-striped table-bordered">
                 <thead>
                     <tr>
                         <th>Fecha</th>
@@ -93,102 +93,119 @@
                         <th>Total</th>
                         <th>Saldo</th>
                         <th>Acciones</th>
-                        <th>Usuario</th> <!-- ...added Usuario column... -->
+                        <th>Usuario</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($pedidos as $pedido)
-                        <tr>
-                            <td>{{ $pedido->fecha ? $pedido->fecha->format('Y-m-d') : 'Sin fecha' }}</td>
-                            <td>{{ $pedido->numero_orden }}</td>
-                            <td>
-                                <span
-                                    style="color: {{ $pedido->fact == 'Pendiente' ? 'orange' : ($pedido->fact == 'Aprobado' ? 'green' : 'black') }}">
-                                    {{ $pedido->fact }}
-                                </span>
-                            </td>
-                            <td>{{ $pedido->cliente }}</td>
-                            <td>
-                                {{ $pedido->celular }}
-                                <a href="https://wa.me/593{{ ltrim($pedido->celular, '0') }}?text=Estimado(a) {{ $pedido->paciente }}, le informamos que sus lentes recetados ya están listos para ser recogidos en ESCLERÓPTICA. Puede pasar a retirarlos cuando le sea más conveniente. ¡Lo esperamos pronto! Muchas gracias por confiar en nosotros.&send=true" target="_blank">
-                                    <i class="fab fa-whatsapp" style="color: green;"></i>
+                    <tr>
+                        <td>{{ $pedido->fecha ? $pedido->fecha->format('Y-m-d') : 'Sin fecha' }}</td>
+                        <td>{{ $pedido->numero_orden }}</td>
+                        <td>
+                            <span style="color: {{ $pedido->fact == 'Pendiente' ? 'orange' : ($pedido->fact == 'Aprobado' ? 'green' : 'black') }}">
+                                {{ $pedido->fact }}
+                            </span>
+                        </td>
+                        <td>{{ $pedido->cliente }}</td>
+                        <td>{{ $pedido->celular }}</td>
+                        <td>{{ $pedido->paciente }}</td>
+                        <td>{{ $pedido->total }}</td>
+                        <td>
+                            <span style="color: {{ $pedido->saldo == 0 ? 'green' : 'red' }}">
+                                {{ $pedido->saldo }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ route('pedidos.show', $pedido->id) }}"
+                                    class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
+                                    <i class="fa fa-lg fa-fw fa-eye"></i>
                                 </a>
-                            </td>
-                            <td>{{ $pedido->paciente }}</td>
-                            <td>{{ $pedido->total }}</td>
-                            <td>
-                                <span style="color: {{ $pedido->saldo == 0 ? 'green' : 'red' }}">
-                                    {{ $pedido->saldo }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ route('pedidos.show', $pedido->id) }}"
-                                        class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
-                                        <i class="fa fa-lg fa-fw fa-eye"></i>
+                                @can('admin')
+                                    <a href="{{ route('pedidos.edit', $pedido->id) }}"
+                                        class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">
+                                        <i class="fa fa-lg fa-fw fa-pen"></i>
                                     </a>
-                                    @can('admin')
-                                        <a href="{{ route('pedidos.edit', $pedido->id) }}"
-                                            class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">
-                                            <i class="fa fa-lg fa-fw fa-pen"></i>
-                                        </a>
-                                        <a class="btn btn-xs btn-default text-danger mx-1 shadow" href="#" data-toggle="modal"
-                                            data-target="#confirmarEliminarModal" data-id="{{ $pedido->id }}"
-                                            data-url="{{ route('pedidos.destroy', $pedido->id) }}">
-                                            <i class="fa fa-lg fa-fw fa-trash"></i>
-                                        </a>
-                                    @endcan
-                                    <!-- Botón de Pago -->
-                                    <a href="{{ route('pagos.create', ['pedido_id' => $pedido->id]) }}"
-                                        class="btn btn-success btn-sm" title="Añadir Pago">
-                                        <i class="fas fa-money-bill-wave"></i>
+                                    <a class="btn btn-xs btn-default text-danger mx-1 shadow" href="#" data-toggle="modal"
+                                        data-target="#confirmarEliminarModal" data-id="{{ $pedido->id }}"
+                                        data-url="{{ route('pedidos.destroy', $pedido->id) }}">
+                                        <i class="fa fa-lg fa-fw fa-trash"></i>
                                     </a>
-                                    <!-- Botón de Aprobar -->
-                                    @can('admin')
-                                        @if($pedido->fact == 'Pendiente' && $pedido->saldo == 0 && !empty($pedido->cliente))
-                                            <form action="{{ route('pedidos.approve', $pedido->id) }}" method="POST"
-                                                style="display:inline;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-warning btn-sm" title="Aprobar">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endcan
-                                </div>
-                                <!-- Confirmar Eliminar Modal -->
-                                <div class="modal fade" id="confirmarEliminarModal" tabindex="-1" role="dialog"
-                                    aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="exampleModalLabel">Confirmar Eliminación
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-                                                ¿Estás seguro de que deseas eliminar este pedido?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-dismiss="modal">Cancelar</button>
-                                                <form id="eliminarForm" method="post"
-                                                    action="{{ route('pedidos.destroy', $pedido->id) }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                                                </form>
+                                @endcan
+                                <!-- Botón de Pago -->
+                                <a href="{{ route('pagos.create', ['pedido_id' => $pedido->id]) }}"
+                                    class="btn btn-success btn-sm" title="Añadir Pago">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </a>
+                                <!-- Botón de Aprobar -->
+                                @can('admin')
+                                    @if($pedido->fact == 'Pendiente' && $pedido->saldo == 0 && !empty($pedido->cliente))
+                                        <form action="{{ route('pedidos.approve', $pedido->id) }}" method="POST"
+                                            style="display:inline;">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Aprobar">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endcan
+                                @if($pedido->fact == 'Aprobado' && !$pedido->calificacion)
+                                    <button type="button" class="btn btn-warning btn-sm" 
+                                            data-toggle="modal" 
+                                            data-target="#calificarModal{{ $pedido->id }}"
+                                            title="Calificar venta">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                @endif
+                                
+                                @if($pedido->calificacion)
+                                    <span class="badge badge-success">
+                                        {{ str_repeat('★', $pedido->calificacion) }}
+                                        {{ str_repeat('☆', 5 - $pedido->calificacion) }}
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
+                        <td>{{ $pedido->usuario }}</td>
+                    </tr>
+
+                    <!-- Modal de Calificación para este pedido -->
+                    <div class="modal fade" id="calificarModal{{ $pedido->id }}" tabindex="-1" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ route('pedidos.calificar', $pedido->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Calificar Venta #{{ $pedido->numero_orden }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Calificación:</label>
+                                            <div class="rating">
+                                                @for($i = 5; $i >= 1; $i--)
+                                                    <input type="radio" name="calificacion" value="{{ $i }}" id="star{{ $i }}{{ $pedido->id }}">
+                                                    <label for="star{{ $i }}{{ $pedido->id }}">☆</label>
+                                                @endfor
                                             </div>
                                         </div>
+                                        <div class="form-group">
+                                            <label>Comentario:</label>
+                                            <textarea name="comentario_calificacion" class="form-control" rows="3"></textarea>
+                                        </div>
                                     </div>
-
-                                </div>
-                            </td>
-                            <td>{{ $pedido->usuario }}</td> <!-- ...display usuario... -->
-                        </tr>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-primary">Guardar Calificación</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     @endforeach
                 </tbody>
             </table>
@@ -197,6 +214,35 @@
     </div>
 </div>
 
+@push('css')
+<style>
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating input {
+    display: none;
+}
+
+.rating label {
+    cursor: pointer;
+    font-size: 30px;
+    color: #ddd;
+    padding: 5px;
+}
+
+.rating input:checked ~ label {
+    color: #ffd700;
+}
+
+.rating label:hover,
+.rating label:hover ~ label {
+    color: #ffd700;
+}
+</style>
+@endpush
 @stop
 @section('js')
 @include('atajos')

@@ -407,4 +407,34 @@ class PedidosController extends Controller
         ]);
     }
 
+    public function calificar(Request $request, $id)
+    {
+        try {
+            $pedido = Pedido::findOrFail($id);
+            
+            $request->validate([
+                'calificacion' => 'required|integer|min:1|max:5',
+                'comentario_calificacion' => 'nullable|string|max:500'
+            ]);
+
+            $pedido->update([
+                'calificacion' => $request->calificacion,
+                'comentario_calificacion' => $request->comentario_calificacion,
+                'fecha_calificacion' => now()
+            ]);
+
+            return redirect()->route('pedidos.index')->with([
+                'error' => 'Exito',
+                'mensaje' => 'Calificación registrada exitosamente',
+                'tipo' => 'alert-success'
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('pedidos.index')->with([
+                'error' => 'Error',
+                'mensaje' => 'Error al registrar la calificación: ' . $e->getMessage(),
+                'tipo' => 'alert-danger'
+            ]);
+        }
+    }
+
 }

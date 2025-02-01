@@ -44,6 +44,9 @@ Route::middleware(['auth:sanctum', 'verified', 'admin'])->group(function () {
     
     // Only keep admin-specific inventory routes here
     Route::delete('Inventario/eliminar/{id}', [InventarioController::class, 'destroy'])->name('inventario.destroy');
+
+    Route::get('/admin/puntuaciones', [AdminController::class, 'puntuacionesUsuarios'])
+        ->name('admin.puntuaciones');
 });
 
 // Keep these routes accessible to all authenticated users
@@ -89,15 +92,41 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('Pedidos/{id}', [PedidosController::class, 'update'])->name('pedidos.update');
     Route::delete('Pedidos/{id}', [PedidosController::class, 'destroy'])->name('pedidos.destroy');
     Route::patch('/pedidos/{id}/approve', [PedidosController::class, 'approve'])->name('pedidos.approve');
+    Route::put('pedidos/{id}/calificar', [PedidosController::class, 'calificar'])
+        ->name('pedidos.calificar');
 
     // Historiales Clinicos
-    Route::get('historiales_clinicos', [HistorialClinicoController::class, 'index'])->name('historiales_clinicos.index');
-    Route::get('historiales_clinicos/create', [HistorialClinicoController::class, 'create'])->name('historiales_clinicos.create');
-    Route::post('historiales_clinicos', [HistorialClinicoController::class, 'store'])->name('historiales_clinicos.store');
-    Route::get('historiales_clinicos/{historial}/edit', [HistorialClinicoController::class, 'edit'])->name('historiales_clinicos.edit');
-    Route::put('historiales_clinicos/{historial}', [HistorialClinicoController::class, 'update'])->name('historiales_clinicos.update');
-    Route::get('historiales_clinicos/{historial}', [HistorialClinicoController::class, 'show'])->name('historiales_clinicos.show');
-    Route::delete('historiales_clinicos/{historial}', [HistorialClinicoController::class, 'destroy'])->name('historiales_clinicos.destroy');
+    Route::prefix('historiales_clinicos')->group(function () {
+        // Rutas sin parámetros primero
+        Route::get('/', [HistorialClinicoController::class, 'index'])
+            ->name('historiales_clinicos.index');
+        
+        Route::get('/create', [HistorialClinicoController::class, 'create'])
+            ->name('historiales_clinicos.create');
+        
+        Route::post('/', [HistorialClinicoController::class, 'store'])
+            ->name('historiales_clinicos.store');
+        
+        // Ruta de cumpleaños (debe ir antes de las rutas con parámetros)
+        Route::get('/cumpleanos', [HistorialClinicoController::class, 'cumpleanos'])
+            ->name('historiales_clinicos.cumpleanos');
+        
+        // Rutas con parámetros después
+        Route::get('/{historial}/edit', [HistorialClinicoController::class, 'edit'])
+            ->name('historiales_clinicos.edit');
+        
+        Route::put('/{historial}', [HistorialClinicoController::class, 'update'])
+            ->name('historiales_clinicos.update');
+        
+        Route::get('/{historial}', [HistorialClinicoController::class, 'show'])
+            ->name('historiales_clinicos.show');
+        
+        Route::delete('/{historial}', [HistorialClinicoController::class, 'destroy'])
+            ->name('historiales_clinicos.destroy');
+        
+        Route::get('/{historial}/whatsapp', [HistorialClinicoController::class, 'enviarWhatsapp'])
+            ->name('historiales_clinicos.whatsapp');
+    });
 
     // Pagos
     Route::get('Pagos', [PagoController::class, 'index'])->name('pagos.index');

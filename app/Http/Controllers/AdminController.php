@@ -66,6 +66,7 @@ class AdminController extends Controller
                 $salesDataMonthly = $this->getMonthlySalesData($selectedYear);
                 $userSalesData = $this->getUserSalesData($selectedYear, $selectedMonth);
                 $ventasPorLugar = $this->getVentasPorLugar($selectedYear, $selectedMonth);
+                $datosGraficoPuntuaciones = $this->getDatosGraficoPuntuaciones($selectedYear, $selectedMonth);
 
             } catch (\Exception $e) {
                 \Log::error('Error obteniendo datos: ' . $e->getMessage());
@@ -79,7 +80,8 @@ class AdminController extends Controller
                 'userSalesData',
                 'selectedYear',
                 'selectedMonth',
-                'ventasPorLugar'
+                'ventasPorLugar',
+                'datosGraficoPuntuaciones'
             ));
 
         } catch (\Exception $e) {
@@ -265,6 +267,53 @@ class AdminController extends Controller
                 'cantidad_vendida' => 0,
                 'total_ventas' => 0
             ]]);
+        }
+    }
+
+    private function getDatosGraficoPuntuaciones($year, $month = null)
+    {
+        try {
+            $query = Pedido::select(
+                'usuario',
+                DB::raw('AVG(calificacion) as promedio_calificacion'),
+                DB::raw('COUNT(calificacion) as total_calificaciones')
+            )
+            ->whereNotNull('calificacion')
+            ->whereNotNull('usuario')
+            ->whereYear('fecha', $year);
+
+            if ($month) {
+                $query->whereMonth('fecha', $month);
+            }
+
+            $resultados = $query->groupBy('usuario')
+                ->having('total_calificaciones', '>', 0)
+                ->orderBy('promedio_calificacion', 'desc')
+                ->get();
+
+            if ($resultados->isEmpty()) {
+                return [
+                    'usuarios' => ['Sin calificaciones'],
+                    'promedios' => [0],
+                    'totales' => [0]
+                ];
+            }
+
+            return [
+                'usuarios' => $resultados->pluck('usuario')->toArray(),
+                'promedios' => $resultados->pluck('promedio_calificacion')->map(function($valor) {
+                    return round($valor, 2);
+                })->toArray(),
+                'totales' => $resultados->pluck('total_calificaciones')->toArray()
+            ];
+
+        } catch (\Exception $e) {
+            \Log::error('Error en getDatosGraficoPuntuaciones: ' . $e->getMessage());
+            return [
+                'usuarios' => ['Error'],
+                'promedios' => [0],
+                'totales' => [0]
+            ];
         }
     }
 }
