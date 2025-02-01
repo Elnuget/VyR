@@ -28,6 +28,7 @@ sudo php artisan route:clear
 sudo php artisan route:cache
 
 
+Bd1
 ALTER TABLE `caja` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
 ALTER TABLE `cash_histories` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
 ALTER TABLE `historiales_clinicos` ADD COLUMN `deleted_at` timestamp NULL DEFAULT NULL;
