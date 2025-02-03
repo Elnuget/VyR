@@ -4,19 +4,23 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class CacheServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        // Limpiar cache antigua
-        if (!Cache::has('cache_version')) {
-            Cache::flush();
-            Cache::forever('cache_version', '1.0');
-        }
+        // Solo ejecutar si las tablas existen
+        if (Schema::hasTable('inventarios') && Schema::hasTable('medios_de_pago')) {
+            // Limpiar cache antigua
+            if (!Cache::has('cache_version')) {
+                Cache::flush();
+                Cache::forever('cache_version', '1.0');
+            }
 
-        // Cachear configuraciones globales
-        $this->cacheGlobalSettings();
+            // Cachear configuraciones globales
+            $this->cacheGlobalSettings();
+        }
     }
 
     protected function cacheGlobalSettings()

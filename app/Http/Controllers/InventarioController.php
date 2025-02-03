@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Inventario; // Asegúrate de importar el modelo Inventario
 use App\Models\Pedido; // Asegúrate de importar el modelo Pedido
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class InventarioController extends Controller
 {
@@ -23,6 +24,16 @@ class InventarioController extends Controller
     public function index(Request $request)
     {
         try {
+            // Verificar si la tabla existe antes de hacer consultas
+            if (!Schema::hasTable('inventarios')) {
+                return view('inventario.index', [
+                    'inventario' => collect(),
+                    'lugares' => collect(),
+                    'columnas' => collect(),
+                    'totalCantidad' => 0
+                ]);
+            }
+
             // Obtener todos los lugares distintos de la tabla inventario
             $lugares = Inventario::select('lugar')
                 ->distinct()
