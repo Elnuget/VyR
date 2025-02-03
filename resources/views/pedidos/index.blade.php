@@ -214,6 +214,31 @@
     </div>
 </div>
 
+{{-- Agregar el modal de confirmación después de la tabla --}}
+<div class="modal fade" id="confirmarEliminarModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar este pedido?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="eliminarForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('css')
 <style>
 .rating {
@@ -314,6 +339,34 @@
             $('#filtroAno').val(now.getFullYear());
             $('#filtroMes').val(now.getMonth() + 1);
             $('#filterForm').submit();
+        });
+
+        // Configurar el modal de eliminación
+        $('#confirmarEliminarModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var url = button.data('url');
+            var modal = $(this);
+            modal.find('#eliminarForm').attr('action', url);
+        });
+
+        // Manejar el envío del formulario de eliminación
+        $('#eliminarForm').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    $('#confirmarEliminarModal').modal('hide');
+                    // Recargar la página o actualizar la tabla
+                    window.location.reload();
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar el pedido');
+                }
+            });
         });
     });
 </script>
