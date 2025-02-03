@@ -255,4 +255,32 @@ class InventarioController extends Controller
             ]);
         }
     }
+
+    /**
+     * Actualiza un registro en línea.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updateInline(Request $request, $id)
+    {
+        try {
+            $inventario = Inventario::findOrFail($id);
+            
+            $validatedData = $request->validate([
+                'numero' => 'required|integer',
+                'lugar' => 'required|string|max:255',
+                'columna' => 'required|integer',
+                'codigo' => 'required|string|max:255',
+                'cantidad' => 'required|integer',
+            ]);
+
+            $inventario->update($validatedData);
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

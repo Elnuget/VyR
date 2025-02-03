@@ -80,8 +80,9 @@
                         <tr class="text-sm">
                             <td>ID</td>
                             <td>Fecha</td>
-                            <td>Lugar</td>
                             <td>Número</td>
+                            <td>Lugar</td>
+                            <td>Columna</td>
                             <td>Código</td>
                             <td>Cantidad</td>
                             @can('admin')
@@ -94,17 +95,38 @@
                         <tr @if($i->cantidad == 0) style="background-color: #FF0000;" @endif>
                                 <td>{{ $i->id }}</td>
                                 <td>{{ $i->fecha }}</td>
-                                <td>{{ $i->lugar }}</td>
-                                <td>{{ $i->numero }}</td>
-                                <td>{{ $i->codigo }}</td>
-                                <td>{{ $i->cantidad }}</td>
+                                <td class="editable" data-id="{{ $i->id }}" data-field="numero">
+                                    <span class="display-value">{{ $i->numero }}</span>
+                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->numero }}">
+                                </td>
+                                <td class="editable" data-id="{{ $i->id }}" data-field="lugar">
+                                    <span class="display-value">{{ $i->lugar }}</span>
+                                    <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->lugar }}">
+                                </td>
+                                <td class="editable" data-id="{{ $i->id }}" data-field="columna">
+                                    <span class="display-value">{{ $i->columna }}</span>
+                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->columna }}">
+                                </td>
+                                <td class="editable" data-id="{{ $i->id }}" data-field="codigo">
+                                    <span class="display-value">{{ $i->codigo }}</span>
+                                    <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->codigo }}">
+                                </td>
+                                <td class="editable" data-id="{{ $i->id }}" data-field="cantidad">
+                                    <span class="display-value">{{ $i->cantidad }}</span>
+                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->cantidad }}">
+                                </td>
                                 @can('admin')
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('inventario.edit', $i->id) }}"
-                                            class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">
-                                            <i class="fa fa-lg fa-fw fa-pen"></i>
-                                        </a>
+                                        <button class="btn btn-xs btn-default text-primary mx-1 shadow edit-row-btn" title="Editar fila">
+                                            <i class="fa fa-lg fa-fw fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-xs btn-default text-success mx-1 shadow save-row-btn" style="display: none;" title="Guardar">
+                                            <i class="fa fa-lg fa-fw fa-save"></i>
+                                        </button>
+                                        <button class="btn btn-xs btn-default text-danger mx-1 shadow cancel-edit-btn" style="display: none;" title="Cancelar">
+                                            <i class="fa fa-lg fa-fw fa-times"></i>
+                                        </button>
                                         <form action="{{ route('inventario.destroy', $i->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar este artículo?');">
                                             @csrf
                                             @method('DELETE')
@@ -142,12 +164,12 @@
             // Inicializar DataTable con configuración
             var inventarioTable = $('#inventarioTable').DataTable({
                 "scrollX": true,
-                "order": [[0, "desc"]],
+                "order": [[2, "asc"]],
                 "columnDefs": [
                     {
-                        "targets": [4], // Columna del código
-                        "visible": true,
-                        "searchable": true
+                        "targets": [0, 1], // Ocultar ID y Fecha
+                        "visible": false,
+                        "searchable": false
                     }
                 ],
                 "dom": 'Bfrtip',
@@ -157,7 +179,7 @@
                         "text": 'Excel',
                         "title": 'Inventario_' + new Date().toISOString().split('T')[0],
                         "exportOptions": {
-                            "columns": [1, 2, 3, 4, 5]
+                            "columns": [2, 3, 4, 5, 6] // Número, Lugar, Columna, Código, Cantidad
                         }
                     },
                     {
@@ -165,7 +187,7 @@
                         "text": 'CSV',
                         "title": 'Inventario_' + new Date().toISOString().split('T')[0],
                         "exportOptions": {
-                            "columns": [1, 2, 3, 4, 5]
+                            "columns": [2, 3, 4, 5, 6]
                         }
                     },
                     {
@@ -173,7 +195,7 @@
                         "text": 'Imprimir',
                         "autoPrint": true,
                         "exportOptions": {
-                            "columns": [1, 2, 3, 4, 5]
+                            "columns": [2, 3, 4, 5, 6]
                         },
                         "customize": function(win) {
                             $(win.document.body).css('font-size', '16pt');
@@ -188,7 +210,7 @@
                         "filename": 'Inventario_' + new Date().toISOString().split('T')[0],
                         "pageSize": 'LETTER',
                         "exportOptions": {
-                            "columns": [1, 2, 3, 4, 5]
+                            "columns": [2, 3, 4, 5, 6]
                         }
                     }
                 ],
@@ -209,7 +231,7 @@
                 "stateSave": true,
                 "stateDuration": 60 * 60 * 24, // 24 horas
                 "stateLoadParams": function(settings, data) {
-                    data.order = [[0, "desc"]];
+                    data.order = [[2, "asc"]];
                 }
             });
 
@@ -217,6 +239,59 @@
             if ($('input[name="fecha"]').val() || $('select[name="lugar"]').val()) {
                 inventarioTable.draw();
             }
+
+            // Edición en línea
+            $('.edit-row-btn').click(function() {
+                const row = $(this).closest('tr');
+                row.find('.display-value').hide();
+                row.find('.edit-input').show();
+                $(this).hide();
+                row.find('.save-row-btn, .cancel-edit-btn').show();
+            });
+
+            $('.cancel-edit-btn').click(function() {
+                const row = $(this).closest('tr');
+                row.find('.display-value').show();
+                row.find('.edit-input').hide();
+                row.find('.edit-row-btn').show();
+                row.find('.save-row-btn, .cancel-edit-btn').hide();
+            });
+
+            $('.save-row-btn').click(function() {
+                const row = $(this).closest('tr');
+                const id = row.find('.editable').first().data('id');
+                const data = {
+                    _token: '{{ csrf_token() }}',
+                    numero: row.find('[data-field="numero"] .edit-input').val(),
+                    lugar: row.find('[data-field="lugar"] .edit-input').val(),
+                    columna: row.find('[data-field="columna"] .edit-input').val(),
+                    codigo: row.find('[data-field="codigo"] .edit-input').val(),
+                    cantidad: row.find('[data-field="cantidad"] .edit-input').val()
+                };
+
+                $.ajax({
+                    url: '/inventario/' + id + '/update-inline',
+                    method: 'POST',
+                    data: data,
+                    success: function(response) {
+                        // Actualizar todos los campos
+                        row.find('.editable').each(function() {
+                            const field = $(this).data('field');
+                            $(this).find('.display-value').text(data[field]).show();
+                            $(this).find('.edit-input').hide();
+                        });
+                        
+                        row.find('.edit-row-btn').show();
+                        row.find('.save-row-btn, .cancel-edit-btn').hide();
+                        
+                        // Mostrar mensaje de éxito
+                        alert('Registro actualizado correctamente');
+                    },
+                    error: function(xhr) {
+                        alert('Error al actualizar el registro');
+                    }
+                });
+            });
         });
     </script>
 @stop
@@ -228,6 +303,14 @@
         }
         .btn-xs {
             padding: 0.1rem 0.3rem;
+        }
+        .edit-input {
+            width: 100%;
+            padding: 2px 5px;
+            height: 30px;
+        }
+        .editable {
+            cursor: pointer;
         }
     </style>
 @stop

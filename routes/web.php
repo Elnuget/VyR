@@ -151,4 +151,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::post('/show-closing-card', [CashHistoryController::class, 'showClosingCard'])->name('show-closing-card');
     Route::get('/cancel-closing-card', [CashHistoryController::class, 'cancelClosingCard'])->name('cancel-closing-card');
+
+    Route::post('/inventario/{id}/update-inline', [InventarioController::class, 'updateInline'])->name('inventario.update-inline');
 });
