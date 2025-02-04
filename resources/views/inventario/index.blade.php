@@ -2,8 +2,15 @@
 
 @section('title', 'Inventario')
 
-
 @section('content_header')
+    @push('css')
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    @endpush
+
+    @push('js')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    @endpush
+
     <h1>Inventario</h1>
     <p>Administracion de Articulos</p>
     @if (session('error'))
@@ -240,9 +247,15 @@
                 inventarioTable.draw();
             }
 
-            // Edición en línea
+            // Edición en línea mejorada
             $('.edit-row-btn').click(function() {
                 const row = $(this).closest('tr');
+                
+                // Guardar valores originales para restaurar en caso de cancelación
+                row.find('.edit-input').each(function() {
+                    $(this).data('original-value', $(this).val());
+                });
+                
                 row.find('.display-value').hide();
                 row.find('.edit-input').show();
                 $(this).hide();
@@ -251,6 +264,12 @@
 
             $('.cancel-edit-btn').click(function() {
                 const row = $(this).closest('tr');
+                
+                // Restaurar valores originales
+                row.find('.edit-input').each(function() {
+                    $(this).val($(this).data('original-value'));
+                });
+                
                 row.find('.display-value').show();
                 row.find('.edit-input').hide();
                 row.find('.edit-row-btn').show();
@@ -260,6 +279,14 @@
             $('.save-row-btn').click(function() {
                 const row = $(this).closest('tr');
                 const id = row.find('.editable').first().data('id');
+                const saveBtn = $(this);
+                
+                const editBtn = row.find('.edit-row-btn');
+                const cancelBtn = row.find('.cancel-edit-btn');
+                
+                saveBtn.prop('disabled', true);
+                cancelBtn.prop('disabled', true);
+                
                 const data = {
                     _token: '{{ csrf_token() }}',
                     numero: row.find('[data-field="numero"] .edit-input').val(),
@@ -269,26 +296,60 @@
                     cantidad: row.find('[data-field="cantidad"] .edit-input').val()
                 };
 
+                // Usar la ruta nombrada de Laravel para generar la URL correcta
                 $.ajax({
-                    url: '/inventario/' + id + '/update-inline',
+                    url: '{{ route('inventario.update-inline', ':id') }}'.replace(':id', id),
                     method: 'POST',
                     data: data,
                     success: function(response) {
-                        // Actualizar todos los campos
-                        row.find('.editable').each(function() {
-                            const field = $(this).data('field');
-                            $(this).find('.display-value').text(data[field]).show();
-                            $(this).find('.edit-input').hide();
-                        });
-                        
-                        row.find('.edit-row-btn').show();
-                        row.find('.save-row-btn, .cancel-edit-btn').hide();
-                        
-                        // Mostrar mensaje de éxito
-                        alert('Registro actualizado correctamente');
+                        if (response.success) {
+                            // Actualizar valores mostrados
+                            row.find('.editable').each(function() {
+                                const field = $(this).data('field');
+                                const newValue = response.data[field];
+                                $(this).find('.display-value').text(newValue).show();
+                                $(this).find('.edit-input').val(newValue).hide();
+                            });
+                            
+                            // Actualizar color de fondo según cantidad
+                            if (parseInt(data.cantidad) === 0) {
+                                row.css('background-color', '#FF0000');
+                            } else {
+                                row.css('background-color', '');
+                            }
+                            
+                            // Restaurar estado de los botones
+                            editBtn.show();
+                            saveBtn.hide().prop('disabled', false);
+                            cancelBtn.hide().prop('disabled', false);
+                            
+                            // Mostrar mensaje de éxito usando alert si SweetAlert2 falla
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Éxito',
+                                    text: response.message,
+                                    timer: 1500
+                                });
+                            } else {
+                                alert('Registro actualizado correctamente');
+                            }
+                        }
                     },
-                    error: function(xhr) {
-                        alert('Error al actualizar el registro');
+                    error: function(xhr, status, error) {
+                        // Mejorar el manejo de errores para ver más detalles
+                        console.error('Error Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+                        
+                        saveBtn.prop('disabled', false);
+                        cancelBtn.prop('disabled', false);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message || 'Error al actualizar el registro: ' + error
+                        });
                     }
                 });
             });
