@@ -107,7 +107,20 @@
                             </span>
                         </td>
                         <td>{{ $pedido->cliente }}</td>
-                        <td>{{ $pedido->celular }}</td>
+                        <td>
+                            {{ $pedido->celular }}
+                            @if($pedido->celular)
+                                @php
+                                    $mensaje = urlencode("Estimado(a) paciente, le informamos que sus lentes recetados ya están listos para ser recogidos en ESCLERÓPTICA. Puede pasar a retirarlos cuando le sea más conveniente. ¡Lo esperamos pronto! Muchas gracias por confiar en nosotros.");
+                                @endphp
+                                <a href="https://wa.me/593{{ ltrim($pedido->celular, '0') }}?text={{ $mensaje }}" 
+                                   target="_blank" 
+                                   class="btn btn-success btn-sm ml-1"
+                                   title="Enviar WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            @endif
+                        </td>
                         <td>{{ $pedido->paciente }}</td>
                         <td>{{ $pedido->total }}</td>
                         <td>

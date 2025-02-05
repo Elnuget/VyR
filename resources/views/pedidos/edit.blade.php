@@ -44,6 +44,19 @@
                 @csrf
                 @method('PUT')
 
+                {{-- Agregar id del pedido como campo oculto --}}
+                <input type="hidden" name="pedido_id" value="{{ $pedido->id }}">
+
+                {{-- En la sección de lunas, asegurarnos que los IDs se mantienen --}}
+                @foreach($pedido->lunas as $index => $luna)
+                    <input type="hidden" name="luna_ids[]" value="{{ $luna->id }}">
+                @endforeach
+
+                {{-- En la sección de armazones, asegurarnos que los IDs se mantienen --}}
+                @foreach($pedido->inventarios as $index => $inventario)
+                    <input type="hidden" name="inventario_ids[]" value="{{ $inventario->id }}">
+                @endforeach
+
                 {{-- Información Básica --}}
                 <div class="card">
                     <div class="card-header">
@@ -305,26 +318,21 @@
                 {{-- Total y Botones --}}
                 <div class="card">
                     <div class="card-body">
-                        {{-- Fila 8 --}}
                         <div class="row mb-3">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label for="total" class="form-label" style="color: red;">Total</label>
                                 <input type="number" class="form-control input-sm" id="total" name="total"
-                                       value="{{ $pedido->total }}" step="0.01" readonly>
+                                       value="{{ $pedido->total }}" step="0.01">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="saldo" class="form-label">Saldo Pendiente</label>
+                                <input type="number" class="form-control input-sm" id="saldo" name="saldo"
+                                       value="{{ $pedido->saldo }}" step="0.01" readonly>
                             </div>
                         </div>
-
-                        {{-- Agregar después del input total --}}
+                        
+                        {{-- Campo oculto para el total de pagos --}}
                         <input type="hidden" id="total_pagado" value="{{ $totalPagado }}">
-
-                        {{-- Fila oculta (Saldo) --}}
-                        <div class="row mb-3" style="display: none;">
-                            <div class="col-md-12">
-                                <label for="saldo" class="form-label">Saldo</label>
-                                <input type="number" class="form-control" id="saldo" name="saldo"
-                                       value="{{ $pedido->saldo }}">
-                            </div>
-                        </div>
 
                         {{-- Botones y Modal --}}
                         <div class="d-flex justify-content-start">
@@ -417,74 +425,86 @@
         }
     });
 
-    // Función para calcular el total
     function calculateTotal() {
-        // 1. Obtener el total pagado desde la base de datos
+        // Obtener el total pagado
         const totalPagado = parseFloat(document.getElementById('total_pagado').value) || 0;
 
-        // 2. Calcular nuevo total
+        // Calcular nuevo total
         let newTotal = 0;
 
         // Sumar examen visual
         const examenVisual = parseFloat(document.getElementById('examen_visual').value) || 0;
         const examenVisualDescuento = parseFloat(document.getElementById('examen_visual_descuento').value) || 0;
-        newTotal += examenVisual * (1 - (examenVisualDescuento / 100));
+        const examenVisualTotal = examenVisual * (1 - (examenVisualDescuento / 100));
+        newTotal += examenVisualTotal;
 
         // Sumar armazones
         document.querySelectorAll('.armazon-section').forEach(section => {
             const precio = parseFloat(section.querySelector('[name="a_precio[]"]').value) || 0;
             const descuento = parseFloat(section.querySelector('[name="a_precio_descuento[]"]').value) || 0;
-            newTotal += precio * (1 - (descuento / 100));
+            const precioFinal = precio * (1 - (descuento / 100));
+            newTotal += precioFinal;
         });
 
         // Sumar lunas
         document.querySelectorAll('.luna-section').forEach(section => {
             const precio = parseFloat(section.querySelector('[name="l_precio[]"]').value) || 0;
             const descuento = parseFloat(section.querySelector('[name="l_precio_descuento[]"]').value) || 0;
-            newTotal += precio * (1 - (descuento / 100));
+            const precioFinal = precio * (1 - (descuento / 100));
+            newTotal += precioFinal;
         });
 
         // Sumar compra rápida
         const valorCompra = parseFloat(document.getElementById('valor_compra').value) || 0;
         newTotal += valorCompra;
 
-        // 3. Calcular nuevo saldo (nuevo total menos pagos realizados)
+        // Redondear a 2 decimales
+        newTotal = Math.round(newTotal * 100) / 100;
+
+        // Calcular saldo pendiente (nuevo total menos pagos realizados)
         const newSaldo = Math.max(0, newTotal - totalPagado);
 
-        // 4. Actualizar los campos
+        // Actualizar los campos
         document.getElementById('total').value = newTotal.toFixed(2);
         document.getElementById('saldo').value = newSaldo.toFixed(2);
-
-        // Debug (opcional - puedes quitar estos console.log)
-        console.log('Total Pagado:', totalPagado);
-        console.log('Nuevo Total:', newTotal);
-        console.log('Nuevo Saldo:', newSaldo);
     }
 
-    // Agregar event listeners para todos los campos que afectan al total
+    // Agregar listeners para todos los campos que afectan al total
     document.addEventListener('DOMContentLoaded', function() {
-        // Event listeners para campos que afectan al total
+        // Campos que afectan al total
         const fields = [
             'examen_visual',
             'examen_visual_descuento',
-            'valor_compra'
+            'valor_compra',
+            'total'  // Agregamos el campo total para permitir edición manual
         ];
         
         fields.forEach(field => {
             const element = document.getElementById(field);
             if (element) {
-                element.addEventListener('input', calculateTotal);
+                element.addEventListener('input', function() {
+                    if (field === 'total') {
+                        // Si se modifica el total manualmente, recalcular solo el saldo
+                        const total = parseFloat(this.value) || 0;
+                        const totalPagado = parseFloat(document.getElementById('total_pagado').value) || 0;
+                        const newSaldo = Math.max(0, total - totalPagado);
+                        document.getElementById('saldo').value = newSaldo.toFixed(2);
+                    } else {
+                        // Para otros campos, calcular todo
+                        calculateTotal();
+                    }
+                });
             }
         });
 
-        // Event delegation para armazones
+        // Event delegation para precios y descuentos de armazones
         document.getElementById('armazones-container').addEventListener('input', function(e) {
             if (e.target.matches('[name="a_precio[]"], [name="a_precio_descuento[]"]')) {
                 calculateTotal();
             }
         });
 
-        // Event delegation para lunas
+        // Event delegation para precios y descuentos de lunas
         document.getElementById('lunas-container').addEventListener('input', function(e) {
             if (e.target.matches('[name="l_precio[]"], [name="l_precio_descuento[]"]')) {
                 calculateTotal();
@@ -570,5 +590,34 @@
         `;
         container.insertAdjacentHTML('beforeend', template);
     }
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validar campos requeridos
+        const required = ['fecha', 'numero_orden'];
+        let isValid = true;
+        
+        required.forEach(field => {
+            const input = document.querySelector(`[name="${field}"]`);
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('is-invalid');
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        // Validar que el total sea mayor a 0
+        const total = parseFloat(document.getElementById('total').value);
+        if (total <= 0) {
+            isValid = false;
+            alert('El total debe ser mayor a 0');
+        }
+        
+        if (isValid) {
+            this.submit();
+        }
+    });
 </script>
 @stop
