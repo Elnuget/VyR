@@ -255,4 +255,47 @@ class InventarioController extends Controller
             ]);
         }
     }
+
+    /**
+     * Actualiza un registro en línea.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updateInline(Request $request, $id)
+    {
+        try {
+            \Log::info('Actualizando inventario inline', [
+                'id' => $id,
+                'data' => $request->all()
+            ]);
+            
+            $inventario = Inventario::findOrFail($id);
+            
+            $validatedData = $request->validate([
+                'numero' => 'required|integer',
+                'lugar' => 'required|string|max:255',
+                'columna' => 'required|integer',
+                'codigo' => 'required|string|max:255',
+                'cantidad' => 'required|integer|min:0',
+            ]);
+
+            $validatedData['codigo'] = strtoupper($validatedData['codigo']);
+
+            $inventario->update($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $validatedData,
+                'message' => 'Registro actualizado correctamente'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error en actualización inline: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el registro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
