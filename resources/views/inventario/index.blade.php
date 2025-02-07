@@ -20,17 +20,81 @@
     <div class="card">
         <div class="card-body">
             @if(!empty($inventario))
-                @if($totalCantidad > 0)
-                    <div id="itemCountLabel" class="mb-3">
-                        <span class="badge badge-success">
-                            Cantidad total de artículos: {{ $totalCantidad }}
-                        </span>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3>{{ $inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->count() }}</h3>
+                                <p>Productos con Stock Bajo</p>
+                                <small>
+                                    @foreach($inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->take(3) as $item)
+                                        {{ $item->codigo }} ({{ $item->cantidad }}), 
+                                    @endforeach
+                                    @if($inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->count() > 3)
+                                        ...
+                                    @endif
+                                </small>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
                     </div>
-                @else
-                    <div id="itemCountLabel" class="mb-3">
-                        <span class="badge badge-danger">No hay artículos en el soporte</span>
+
+                    <div class="col-md-4">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>{{ $inventario->where('cantidad', 0)->count() }}</h3>
+                                <p>Productos Agotados</p>
+                                <small>
+                                    @php
+                                        $agotadosPorLugar = $inventario->where('cantidad', 0)
+                                            ->groupBy('lugar')
+                                            ->map->count()
+                                            ->take(3);
+                                    @endphp
+                                    @foreach($agotadosPorLugar as $lugar => $cantidad)
+                                        {{ $lugar }}: {{ $cantidad }},
+                                    @endforeach
+                                    @if($agotadosPorLugar->count() > 3)
+                                        ...
+                                    @endif
+                                </small>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                        </div>
                     </div>
-                @endif
+
+                    <div class="col-md-4">
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>{{ $totalCantidad }}</h3>
+                                <p>Stock Total</p>
+                                <small>
+                                    @php
+                                        $stockPorLugar = $inventario
+                                            ->groupBy('lugar')
+                                            ->map(function($items) {
+                                                return $items->sum('cantidad');
+                                            })
+                                            ->take(3);
+                                    @endphp
+                                    @foreach($stockPorLugar as $lugar => $cantidad)
+                                        {{ $lugar }}: {{ $cantidad }},
+                                    @endforeach
+                                    @if($stockPorLugar->count() > 3)
+                                        ...
+                                    @endif
+                                </small>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endif
             <div id="itemCountLabel" class="mb-3"></div>
             <form method="GET" class="form-row mb-3">
@@ -119,15 +183,23 @@
                         @endforeach
                     </tbody>
                 </table>
-                <br>
+            </div>
+            <div class="btn-toolbar mb-3" role="toolbar">
                 <div class="btn-group">
-                    <a type="button" class="btn btn-success" href="{{ route('inventario.create') }}">Crear articulo</a>
-                    <a type="button" class="btn btn-primary" href="{{ route('inventario.actualizar') }}">Actualizar articulos</a>
-                    <a type="button" class="btn btn-success" href="{{ route('generarQR') }}">
-                        <i class="fa fa-lg fa-fw fa-qrcode"></i> Generar
-                    </a>
-                    <a type="button" class="btn btn-success" href="{{ route('leerQR') }}">
-                        <i class="fa fa-lg fa-fw fa-qrcode"></i> Añadir
+                    <button class="btn btn-success" onclick="crearArticulo()">
+                        <i class="fas fa-plus"></i> Crear artículo
+                    </button>
+                    <button class="btn btn-primary" onclick="actualizarArticulos()">
+                        <i class="fas fa-sync"></i> Actualizar artículos
+                    </button>
+                    <button class="btn btn-warning" onclick="generar()">
+                        <i class="fas fa-cog"></i> Generar
+                    </button>
+                    <button class="btn btn-info" onclick="añadir()">
+                        <i class="fas fa-plus-circle"></i> Añadir
+                    </button>
+                    <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i> Historial de Movimientos
                     </a>
                 </div>
             </div>
@@ -139,19 +211,11 @@
     @include('atajos')
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable con configuración
             var inventarioTable = $('#inventarioTable').DataTable({
                 "scrollX": true,
                 "order": [[0, "desc"]],
-                "columnDefs": [
-                    {
-                        "targets": [4], // Columna del código
-                        "visible": true,
-                        "searchable": true
-                    }
-                ],
-                "dom": 'Bfrtip',
-                "buttons": [
+                "dom": 'Bfrtip',  // Restaurar el dom
+                "buttons": [      // Restaurar los botones
                     {
                         "extend": 'excelHtml5',
                         "text": 'Excel',
@@ -206,17 +270,58 @@
                 "paging": false,
                 "info": false,
                 "searching": true,
-                "stateSave": true,
-                "stateDuration": 60 * 60 * 24, // 24 horas
-                "stateLoadParams": function(settings, data) {
-                    data.order = [[0, "desc"]];
-                }
+                "stateSave": true
             });
 
-            // Aplicar filtros existentes al cargar la página
-            if ($('input[name="fecha"]').val() || $('select[name="lugar"]').val()) {
-                inventarioTable.draw();
+            // Vincular los botones superiores con las acciones de DataTables
+            $('.Excel').click(function() {
+                inventarioTable.button('.buttons-excel').trigger();
+            });
+
+            $('.CSV').click(function() {
+                inventarioTable.button('.buttons-csv').trigger();
+            });
+
+            $('.Imprimir').click(function() {
+                inventarioTable.button('.buttons-print').trigger();
+            });
+
+            $('.PDF').click(function() {
+                inventarioTable.button('.buttons-pdf').trigger();
+            });
+
+            // Función para Crear artículo
+            window.crearArticulo = function() {
+                window.location.href = "{{ route('inventario.create') }}";
             }
+
+            // Función para Actualizar artículos
+            window.actualizarArticulos = function() {
+                window.location.href = "{{ route('inventario.actualizar') }}";
+            }
+
+            // Función para Generar
+            window.generar = function() {
+                if (confirm('¿Está seguro que desea generar nuevos registros?')) {
+                    // Aquí puedes agregar la lógica para generar
+                    window.location.href = "{{ route('generarQR') }}";
+                }
+            }
+
+            // Función para Añadir
+            window.añadir = function() {
+                window.location.href = "{{ route('leerQR') }}";
+            }
+
+            // Vincular las funciones a los botones
+            $('.btn-toolbar').find('button').each(function() {
+                $(this).click(function() {
+                    let action = $(this).attr('onclick');
+                    if (action) {
+                        eval(action);
+                    }
+                });
+            });
         });
     </script>
 @stop
@@ -228,6 +333,46 @@
         }
         .btn-xs {
             padding: 0.1rem 0.3rem;
+        }
+        
+        .small-box {
+            border-radius: 4px;
+            position: relative;
+            display: block;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+
+        .small-box > .inner {
+            padding: 10px;
+        }
+
+        .small-box h3 {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            white-space: nowrap;
+            padding: 0;
+        }
+
+        .small-box p {
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .small-box small {
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+            color: rgba(0,0,0,0.7);
+        }
+
+        .small-box .icon {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 70px;
+            color: rgba(0,0,0,0.15);
         }
     </style>
 @stop

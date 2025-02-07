@@ -36,6 +36,13 @@ class Pago extends Model
 
     public function pedido()
     {
-        return $this->belongsTo(Pedido::class);
+        return $this->belongsTo(Pedido::class)->withTrashed();
+    }
+
+    public function scopeValidPayments($query)
+    {
+        return $query->whereHas('pedido', function($q) {
+            $q->whereNotNull('id');
+        });
     }
 }

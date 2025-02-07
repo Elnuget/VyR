@@ -72,7 +72,7 @@
             </div>
         </form>
 
-        {{-- Botón Añadir pedido --}}
+        {{-- Botones de acción --}}
         <div class="btn-group mb-3">
             <a type="button" class="btn btn-success" href="{{ route('pedidos.create') }}">Añadir pedido</a>
         </div>
@@ -237,6 +237,12 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="mb-3">
+    <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-info">
+        Ver Historial de Inventario
+    </a>
 </div>
 
 @push('css')

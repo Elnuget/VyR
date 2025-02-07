@@ -25,23 +25,36 @@ class PagoController extends Controller
      */
     public function index(Request $request)
     {
-        $mediosdepago = mediosdepago::all(); // Add this line to get all payment methods
+        $mediosdepago = mediosdepago::all();
         $query = Pago::with(['pedido', 'mediodepago']);
 
         if ($request->filled('ano')) {
-            $query->whereYear('created_at', '=', $request->ano);
+            $query->whereYear('created_at', '=', $request->ano)
+                  ->whereHas('pedido', function($q) use ($request) {
+                      $q->whereYear('fecha', '=', $request->ano);
+                  });
         }
 
         if ($request->filled('mes')) {
-            $query->whereMonth('created_at', '=', (int)$request->mes);
+            $query->whereMonth('created_at', '=', (int)$request->mes)
+                  ->whereHas('pedido', function($q) use ($request) {
+                      $q->whereMonth('fecha', '=', (int)$request->mes);
+                  });
         }
 
         if ($request->filled('metodo_pago')) {
             $query->where('mediodepago_id', '=', $request->metodo_pago);
         }
 
+        // Solo incluir pagos que tienen pedidos asociados y válidos
+        $query->whereHas('pedido', function($q) {
+            $q->whereNotNull('id');
+        });
+
         $pagos = $query->get();
-        $totalPagos = $pagos->sum('pago'); // Calculate total payments
+        
+        // Calcular el total solo de pagos con pedidos válidos
+        $totalPagos = $pagos->sum('pago');
 
         return view('pagos.index', compact('pagos', 'mediosdepago', 'totalPagos'));
     }
@@ -69,36 +82,38 @@ class PagoController extends Controller
     {
         // Validate data
         $validatedData = $request->validate([
-            'pedido_id' => 'nullable|exists:pedidos,id',
-            'mediodepago_id' => 'nullable|exists:mediosdepagos,id',
-            'pago' => 'nullable|regex:/^\d+(\.\d{1,2})?$/',
+            'pedido_id' => 'required|exists:pedidos,id', // Hacer pedido_id requerido
+            'mediodepago_id' => 'required|exists:mediosdepagos,id',
+            'pago' => 'required|regex:/^\d+(\.\d{1,2})?$/',
             'created_at' => 'sometimes|nullable|date',
         ]);
 
-        // Format pago to ensure exact decimal
-        $validatedData['pago'] = number_format((float)$validatedData['pago'], 2, '.', '');
-
         try {
-            // Create a new pago using the 'pagos' table
+            // Verificar que el pedido existe y es del mes actual
+            $pedido = Pedido::findOrFail($validatedData['pedido_id']);
+            
+            if (!$pedido) {
+                throw new \Exception('El pedido no existe');
+            }
+
+            // Format pago to ensure exact decimal
+            $validatedData['pago'] = number_format((float)$validatedData['pago'], 2, '.', '');
+
+            // Create a new pago
             $nuevoPago = Pago::create($validatedData);
 
-            // Update the pedido's saldo if pedido_id is provided
-            if (isset($validatedData['pedido_id'])) {
-                $pedido = Pedido::find($validatedData['pedido_id']);
-                if ($pedido) {
-                    $pedido->saldo -= $validatedData['pago'];
-                    $pedido->save();
+            // Update the pedido's saldo
+            $pedido->saldo -= $validatedData['pago'];
+            $pedido->save();
 
-                    // Si el método de pago es Efectivo (asumiendo que el ID es 1)
-                    if ($validatedData['mediodepago_id'] == 1) {
-                        // Crear entrada en caja
-                        Caja::create([
-                            'valor' => $validatedData['pago'],
-                            'motivo' => 'Abono ' . $pedido->cliente,
-                            'user_id' => auth()->id()
-                        ]);
-                    }
-                }
+            // Si el método de pago es Efectivo (asumiendo que el ID es 1)
+            if ($validatedData['mediodepago_id'] == 1) {
+                // Crear entrada en caja
+                Caja::create([
+                    'valor' => $validatedData['pago'],
+                    'motivo' => 'Abono ' . $pedido->cliente,
+                    'user_id' => auth()->id()
+                ]);
             }
 
             // Send email notification
@@ -115,7 +130,6 @@ class PagoController extends Controller
                 'tipo' => 'alert-success'
             ]);
         } catch (\Exception $e) {
-            // If an error occurs, delete the created pago
             if (isset($nuevoPago)) {
                 $nuevoPago->delete();
             }

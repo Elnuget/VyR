@@ -68,7 +68,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->name('inventario.actualizar');
     
     Route::get('Inventario', [InventarioController::class, 'index'])->name('inventario.index');
-    Route::get('Inventario/Crear', [InventarioController::class, 'create'])->name('inventario.create');
+    Route::get('Inventario/Crear', [InventarioController::class, 'create'])
+        ->name('inventario.create');
     Route::post('Inventario', [InventarioController::class, 'store'])->name('inventario.store');
     Route::get('Inventario/{id}', [InventarioController::class, 'edit'])->name('inventario.edit');
     Route::get('Inventario/{id}/ver', [InventarioController::class, 'show'])->name('inventario.show');
@@ -151,4 +152,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::post('/show-closing-card', [CashHistoryController::class, 'showClosingCard'])->name('show-closing-card');
     Route::get('/cancel-closing-card', [CashHistoryController::class, 'cancelClosingCard'])->name('cancel-closing-card');
+
+    Route::get('/pedidos/inventario-historial', [PedidosController::class, 'inventarioHistorial'])
+        ->name('pedidos.inventario-historial');
 });

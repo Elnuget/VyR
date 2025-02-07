@@ -22,7 +22,6 @@ class PedidosController extends Controller
     public function index(Request $request)
     {
         try {
-            // Construir la consulta base con eager loading optimizado
             $query = Pedido::query()
                 ->with([
                     'aInventario:id,codigo,cantidad',
@@ -30,22 +29,18 @@ class PedidosController extends Controller
                     'pagos:id,pedido_id,pago'
                 ]);
 
-            // Aplicar filtros si existen
             if ($request->filled('ano')) {
                 $query->whereYear('fecha', $request->ano);
             } else {
-                // Si no hay año especificado, usar el año actual
                 $query->whereYear('fecha', now()->year);
             }
 
             if ($request->filled('mes')) {
                 $query->whereMonth('fecha', $request->mes);
             } else {
-                // Si no hay mes especificado, usar el mes actual
                 $query->whereMonth('fecha', now()->month);
             }
 
-            // Seleccionar solo los campos necesarios
             $pedidos = $query->select([
                 'id',
                 'numero_orden',
@@ -61,11 +56,13 @@ class PedidosController extends Controller
             ->orderBy('numero_orden', 'desc')
             ->get();
 
-            // Calcular totales una sola vez
+            // Calcular totales solo de los pedidos del mes actual
             $totales = [
                 'ventas' => $pedidos->sum('total'),
                 'saldos' => $pedidos->sum('saldo'),
-                'cobrado' => $pedidos->sum('total') - $pedidos->sum('saldo')
+                'cobrado' => $pedidos->sum(function($pedido) {
+                    return $pedido->pagos->sum('pago');
+                })
             ];
 
             return view('pedidos.index', compact('pedidos', 'totales'));
@@ -435,6 +432,12 @@ class PedidosController extends Controller
                 'tipo' => 'alert-danger'
             ]);
         }
+    }
+
+    public function inventarioHistorial()
+    {
+        $inventario = Inventario::with('pedidos')->get();
+        return view('pedidos.inventario-historial', compact('inventario'));
     }
 
 }
