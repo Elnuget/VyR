@@ -153,12 +153,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/show-closing-card', [CashHistoryController::class, 'showClosingCard'])->name('show-closing-card');
     Route::get('/cancel-closing-card', [CashHistoryController::class, 'cancelClosingCard'])->name('cancel-closing-card');
 
-<<<<<<< HEAD
     Route::get('/pedidos/inventario-historial', [PedidosController::class, 'inventarioHistorial'])
         ->name('pedidos.inventario-historial');
-=======
     // Asegúrate de que esta ruta esté antes de otras rutas que puedan interferir
     Route::post('/inventario/{id}/update-inline', [InventarioController::class, 'updateInline'])
         ->name('inventario.update-inline');
->>>>>>> 090a94be94490cfbd3906dc3fd552391de763600
 });
