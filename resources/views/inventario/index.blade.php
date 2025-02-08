@@ -163,26 +163,26 @@
                     </thead>
                     <tbody>
                         @foreach ($inventario as $i)
-                        <tr @if($i->cantidad == 0) style="background-color: #FF0000;" @endif>
+                        <tr @if($i->cantidad == 0) style="background-color: #FF0000;" @endif data-id="{{ $i->id }}">
                                 <td>{{ $i->id }}</td>
                                 <td>{{ $i->fecha }}</td>
-                                <td class="editable" data-id="{{ $i->id }}" data-field="numero">
+                                <td class="editable" data-field="numero">
                                     <span class="display-value">{{ $i->numero }}</span>
                                     <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->numero }}">
                                 </td>
-                                <td class="editable" data-id="{{ $i->id }}" data-field="lugar">
+                                <td class="editable" data-field="lugar">
                                     <span class="display-value">{{ $i->lugar }}</span>
                                     <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->lugar }}">
                                 </td>
-                                <td class="editable" data-id="{{ $i->id }}" data-field="columna">
+                                <td class="editable" data-field="columna">
                                     <span class="display-value">{{ $i->columna }}</span>
                                     <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->columna }}">
                                 </td>
-                                <td class="editable" data-id="{{ $i->id }}" data-field="codigo">
+                                <td class="editable" data-field="codigo">
                                     <span class="display-value">{{ $i->codigo }}</span>
                                     <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->codigo }}">
                                 </td>
-                                <td class="editable" data-id="{{ $i->id }}" data-field="cantidad">
+                                <td class="editable" data-field="cantidad">
                                     <span class="display-value">{{ $i->cantidad }}</span>
                                     <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->cantidad }}">
                                 </td>
@@ -242,22 +242,9 @@
         $(document).ready(function() {
             var inventarioTable = $('#inventarioTable').DataTable({
                 "scrollX": true,
-<<<<<<< HEAD
                 "order": [[0, "desc"]],
                 "dom": 'Bfrtip',  // Restaurar el dom
                 "buttons": [      // Restaurar los botones
-=======
-                "order": [[2, "asc"]],
-                "columnDefs": [
-                    {
-                        "targets": [0, 1], // Ocultar ID y Fecha
-                        "visible": false,
-                        "searchable": false
-                    }
-                ],
-                "dom": 'Bfrtip',
-                "buttons": [
->>>>>>> 090a94be94490cfbd3906dc3fd552391de763600
                     {
                         "extend": 'excelHtml5',
                         "text": 'Excel',
@@ -312,15 +299,7 @@
                 "paging": false,
                 "info": false,
                 "searching": true,
-<<<<<<< HEAD
                 "stateSave": true
-=======
-                "stateSave": true,
-                "stateDuration": 60 * 60 * 24, // 24 horas
-                "stateLoadParams": function(settings, data) {
-                    data.order = [[2, "asc"]];
-                }
->>>>>>> 090a94be94490cfbd3906dc3fd552391de763600
             });
 
             // Vincular los botones superiores con las acciones de DataTables
@@ -345,7 +324,6 @@
                 window.location.href = "{{ route('inventario.create') }}";
             }
 
-<<<<<<< HEAD
             // Función para Actualizar artículos
             window.actualizarArticulos = function() {
                 window.location.href = "{{ route('inventario.actualizar') }}";
@@ -370,111 +348,90 @@
                     let action = $(this).attr('onclick');
                     if (action) {
                         eval(action);
-=======
-            // Edición en línea mejorada
-            $('.edit-row-btn').click(function() {
-                const row = $(this).closest('tr');
-                
-                // Guardar valores originales para restaurar en caso de cancelación
-                row.find('.edit-input').each(function() {
-                    $(this).data('original-value', $(this).val());
+                    }
                 });
-                
-                row.find('.display-value').hide();
-                row.find('.edit-input').show();
-                $(this).hide();
-                row.find('.save-row-btn, .cancel-edit-btn').show();
             });
 
-            $('.cancel-edit-btn').click(function() {
-                const row = $(this).closest('tr');
+            // Hacer las celdas editables al hacer clic
+            $('.editable').on('click', function() {
+                let currentValue = $(this).text().trim();
+                let field = $(this).data('field');
+                let id = $(this).closest('tr').data('id');
                 
-                // Restaurar valores originales
-                row.find('.edit-input').each(function() {
-                    $(this).val($(this).data('original-value'));
-                });
+                // Crear el input apropiado según el tipo de campo
+                let input;
+                if (field === 'cantidad' || field === 'numero' || field === 'columna') {
+                    input = $('<input type="number" class="form-control form-control-sm">');
+                } else {
+                    input = $('<input type="text" class="form-control form-control-sm">');
+                }
                 
-                row.find('.display-value').show();
-                row.find('.edit-input').hide();
-                row.find('.edit-row-btn').show();
-                row.find('.save-row-btn, .cancel-edit-btn').hide();
-            });
+                input.val(currentValue);
+                $(this).html(input);
+                input.focus();
 
-            $('.save-row-btn').click(function() {
-                const row = $(this).closest('tr');
-                const id = row.find('.editable').first().data('id');
-                const saveBtn = $(this);
-                
-                const editBtn = row.find('.edit-row-btn');
-                const cancelBtn = row.find('.cancel-edit-btn');
-                
-                saveBtn.prop('disabled', true);
-                cancelBtn.prop('disabled', true);
-                
-                const data = {
-                    _token: '{{ csrf_token() }}',
-                    numero: row.find('[data-field="numero"] .edit-input').val(),
-                    lugar: row.find('[data-field="lugar"] .edit-input').val(),
-                    columna: row.find('[data-field="columna"] .edit-input').val(),
-                    codigo: row.find('[data-field="codigo"] .edit-input').val(),
-                    cantidad: row.find('[data-field="cantidad"] .edit-input').val()
-                };
+                // Manejar la actualización cuando el input pierde el foco
+                input.on('blur', function() {
+                    let newValue = $(this).val();
+                    let cell = $(this).parent();
+                    
+                    // Obtener todos los valores de la fila
+                    let row = cell.closest('tr');
+                    let data = {
+                        numero: row.find('[data-field="numero"]').text(),
+                        lugar: row.find('[data-field="lugar"]').text(),
+                        columna: row.find('[data-field="columna"]').text(),
+                        codigo: row.find('[data-field="codigo"]').text(),
+                        cantidad: row.find('[data-field="cantidad"]').text()
+                    };
+                    
+                    // Actualizar el valor específico que se está editando
+                    data[field] = newValue;
 
-                // Usar la ruta nombrada de Laravel para generar la URL correcta
-                $.ajax({
-                    url: '{{ route('inventario.update-inline', ':id') }}'.replace(':id', id),
-                    method: 'POST',
-                    data: data,
-                    success: function(response) {
-                        if (response.success) {
-                            // Actualizar valores mostrados
-                            row.find('.editable').each(function() {
-                                const field = $(this).data('field');
-                                const newValue = response.data[field];
-                                $(this).find('.display-value').text(newValue).show();
-                                $(this).find('.edit-input').val(newValue).hide();
-                            });
-                            
-                            // Actualizar color de fondo según cantidad
-                            if (parseInt(data.cantidad) === 0) {
-                                row.css('background-color', '#FF0000');
-                            } else {
-                                row.css('background-color', '');
-                            }
-                            
-                            // Restaurar estado de los botones
-                            editBtn.show();
-                            saveBtn.hide().prop('disabled', false);
-                            cancelBtn.hide().prop('disabled', false);
-                            
-                            // Mostrar mensaje de éxito usando alert si SweetAlert2 falla
-                            if (typeof Swal !== 'undefined') {
+                    // Enviar la actualización al servidor
+                    $.ajax({
+                        url: `/inventario/${id}/update-inline`,
+                        method: 'POST',
+                        data: data,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                cell.text(newValue);
+                                // Mostrar mensaje de éxito
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Éxito',
+                                    title: 'Actualizado',
                                     text: response.message,
                                     timer: 1500
                                 });
                             } else {
-                                alert('Registro actualizado correctamente');
+                                // Restaurar valor anterior si hay error
+                                cell.text(currentValue);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message
+                                });
                             }
+                        },
+                        error: function(xhr) {
+                            // Restaurar valor anterior y mostrar error
+                            cell.text(currentValue);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'No se pudo actualizar el registro'
+                            });
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        // Mejorar el manejo de errores para ver más detalles
-                        console.error('Error Status:', status);
-                        console.error('Error:', error);
-                        console.error('Response:', xhr.responseText);
-                        
-                        saveBtn.prop('disabled', false);
-                        cancelBtn.prop('disabled', false);
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message || 'Error al actualizar el registro: ' + error
-                        });
->>>>>>> 090a94be94490cfbd3906dc3fd552391de763600
+                    });
+                });
+
+                // Manejar la tecla Enter
+                input.on('keypress', function(e) {
+                    if (e.which === 13) {
+                        $(this).blur();
                     }
                 });
             });
@@ -490,7 +447,6 @@
         .btn-xs {
             padding: 0.1rem 0.3rem;
         }
-<<<<<<< HEAD
         
         .small-box {
             border-radius: 4px;
@@ -530,15 +486,17 @@
             right: 10px;
             font-size: 70px;
             color: rgba(0,0,0,0.15);
-=======
-        .edit-input {
-            width: 100%;
-            padding: 2px 5px;
-            height: 30px;
         }
+
         .editable {
             cursor: pointer;
->>>>>>> 090a94be94490cfbd3906dc3fd552391de763600
+        }
+        .editable:hover {
+            background-color: #f8f9fa;
+        }
+        .editable input {
+            width: 100%;
+            padding: 2px 5px;
         }
     </style>
 @stop
