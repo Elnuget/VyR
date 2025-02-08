@@ -145,6 +145,25 @@
                     <a class="btn btn-secondary form-control" href="{{ route('inventario.index') }}">Limpiar</a>
                 </div>
             </form>
+            <div class="btn-toolbar mb-3" role="toolbar">
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="crearArticulo()">
+                        <i class="fas fa-plus"></i> Crear artículo
+                    </button>
+                    <button class="btn btn-primary" onclick="actualizarArticulos()">
+                        <i class="fas fa-sync"></i> Actualizar artículos
+                    </button>
+                    <button class="btn btn-warning" onclick="generar()">
+                        <i class="fas fa-cog"></i> Generar
+                    </button>
+                    <button class="btn btn-info" onclick="añadir()">
+                        <i class="fas fa-plus-circle"></i> Añadir
+                    </button>
+                    <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i> Historial de Movimientos
+                    </a>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table id="inventarioTable" class="table table-striped table-bordered table-sm small">
                     <thead>
@@ -212,25 +231,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-            <div class="btn-toolbar mb-3" role="toolbar">
-                <div class="btn-group">
-                    <button class="btn btn-success" onclick="crearArticulo()">
-                        <i class="fas fa-plus"></i> Crear artículo
-                    </button>
-                    <button class="btn btn-primary" onclick="actualizarArticulos()">
-                        <i class="fas fa-sync"></i> Actualizar artículos
-                    </button>
-                    <button class="btn btn-warning" onclick="generar()">
-                        <i class="fas fa-cog"></i> Generar
-                    </button>
-                    <button class="btn btn-info" onclick="añadir()">
-                        <i class="fas fa-plus-circle"></i> Añadir
-                    </button>
-                    <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-secondary">
-                        <i class="fas fa-history"></i> Historial de Movimientos
-                    </a>
-                </div>
             </div>
         </div>
     </div>
