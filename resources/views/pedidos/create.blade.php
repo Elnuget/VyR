@@ -146,14 +146,15 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            {{-- Fila 4 --}}
                             <div class="row mb-3">
                                 <div class="col-md-12">
-                                    <label for="a_inventario_id" class="form-label">Armazón (Inventario)</label>
-                                    <select class="form-control selectpicker" data-live-search="true" id="a_inventario_id" name="a_inventario_id[]">
-                                        <option value="">Seleccione un Item del Inventario</option>
-                                        @foreach ($armazones as $item)
-                                            <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
+                                    <label>Armazón (Inventario)</label>
+                                    <select class="form-control selectpicker" data-live-search="true" name="a_inventario_id[]">
+                                        <option value="">Seleccione un armazón</option>
+                                        @foreach($armazones as $armazon)
+                                            <option value="{{ $armazon->id }}">
+                                                {{ $armazon->codigo }} - {{ $armazon->lugar }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -489,9 +490,11 @@
                             <div class="col-md-12">
                                 <label class="form-label">Armazón (Inventario)</label>
                                 <select class="form-control selectpicker" data-live-search="true" name="a_inventario_id[]">
-                                    <option value="" selected>Seleccione un Item del Inventario</option>
-                                    @foreach ($armazones as $item)
-                                        <option value="{{ $item->id }}">{{ $item->codigo }} - {{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</option>
+                                    <option value="">Seleccione un armazón</option>
+                                    @foreach($armazones as $armazon)
+                                        <option value="{{ $armazon->id }}">
+                                            {{ $armazon->codigo }} - {{ $armazon->lugar }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -539,7 +542,7 @@
                                 <input type="text" class="form-control" name="material[]" list="material_options"
                                        placeholder="Seleccione o escriba un material" oninput="calculateTotal()">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md.4">
                                 <label class="form-label">Filtro</label>
                                 <input type="text" class="form-control" name="filtro[]" list="filtro_options"
                                        placeholder="Seleccione o escriba un filtro" oninput="calculateTotal()">
