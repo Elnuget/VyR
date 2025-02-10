@@ -24,6 +24,13 @@ class InventarioController extends Controller
     public function index(Request $request)
     {
         try {
+            // Si no hay fecha seleccionada, redirigir al mes actual
+            if (!$request->filled('fecha')) {
+                return redirect()->route('inventario.index', [
+                    'fecha' => now()->format('Y-m')
+                ]);
+            }
+
             // Verificar si la tabla existe antes de hacer consultas
             if (!Schema::hasTable('inventarios')) {
                 return view('inventario.index', [
@@ -35,10 +42,8 @@ class InventarioController extends Controller
             // Obtener el inventario completo
             $query = Inventario::query();
             
-            // Si hay fecha seleccionada, aplicar el filtro
-            if ($request->filled('fecha')) {
-                $query->where('fecha', 'like', $request->fecha . '%');
-            }
+            // Aplicar el filtro de fecha
+            $query->where('fecha', 'like', $request->fecha . '%');
             
             // Obtener todos los datos ordenados por lugar y columna
             $inventario = $query->orderBy('lugar')
