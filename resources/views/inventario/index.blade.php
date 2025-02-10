@@ -26,115 +26,11 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            @if(!empty($inventario))
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="small-box bg-warning">
-                            <div class="inner">
-                                <h3>{{ $inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->count() }}</h3>
-                                <p>Productos con Stock Bajo</p>
-                                <small>
-                                    @foreach($inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->take(3) as $item)
-                                        {{ $item->codigo }} ({{ $item->cantidad }}), 
-                                    @endforeach
-                                    @if($inventario->where('cantidad', '>', 0)->where('cantidad', '<=', 3)->count() > 3)
-                                        ...
-                                    @endif
-                                </small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="small-box bg-danger">
-                            <div class="inner">
-                                <h3>{{ $inventario->where('cantidad', 0)->count() }}</h3>
-                                <p>Productos Agotados</p>
-                                <small>
-                                    @php
-                                        $agotadosPorLugar = $inventario->where('cantidad', 0)
-                                            ->groupBy('lugar')
-                                            ->map->count()
-                                            ->take(3);
-                                    @endphp
-                                    @foreach($agotadosPorLugar as $lugar => $cantidad)
-                                        {{ $lugar }}: {{ $cantidad }},
-                                    @endforeach
-                                    @if($agotadosPorLugar->count() > 3)
-                                        ...
-                                    @endif
-                                </small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="small-box bg-success">
-                            <div class="inner">
-                                <h3>{{ $totalCantidad }}</h3>
-                                <p>Stock Total</p>
-                                <small>
-                                    @php
-                                        $stockPorLugar = $inventario
-                                            ->groupBy('lugar')
-                                            ->map(function($items) {
-                                                return $items->sum('cantidad');
-                                            })
-                                            ->take(3);
-                                    @endphp
-                                    @foreach($stockPorLugar as $lugar => $cantidad)
-                                        {{ $lugar }}: {{ $cantidad }},
-                                    @endforeach
-                                    @if($stockPorLugar->count() > 3)
-                                        ...
-                                    @endif
-                                </small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-box"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-            <div id="itemCountLabel" class="mb-3"></div>
             <form method="GET" class="form-row mb-3">
-                <div class="col-md-3">
+                <div class="col-md-8">
                     <label for="filtroFecha">Seleccionar Fecha:</label>
                     <input type="month" name="fecha" class="form-control"
                            value="{{ request('fecha') ?? now()->format('Y-m') }}" />
-                </div>
-                <div class="col-md-3">
-                    <label for="lugar">Lugar:</label>
-                    <select class="form-control" name="lugar">
-                        <option value="">Seleccionar Lugar</option>
-                        @if($lugares)
-                            @foreach ($lugares as $item)
-                                <option value="{{ $item->lugar }}" {{ request('lugar') == $item->lugar ? 'selected' : '' }}>
-                                    {{ $item->lugar }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="columna">Columna:</label>
-                    <select class="form-control" name="columna">
-                        <option value="">Todas</option>
-                        @if($columnas)
-                            @foreach ($columnas as $col)
-                                <option value="{{ $col->columna }}" {{ request('columna') == $col->columna ? 'selected' : '' }}>
-                                    {{ $col->columna }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
                 </div>
                 <div class="col-md-2">
                     <label>&nbsp;</label>
@@ -145,6 +41,7 @@
                     <a class="btn btn-secondary form-control" href="{{ route('inventario.index') }}">Limpiar</a>
                 </div>
             </form>
+
             <div class="btn-toolbar mb-3" role="toolbar">
                 <div class="btn-group">
                     <button class="btn btn-success" onclick="crearArticulo()">
@@ -154,83 +51,142 @@
                         <i class="fas fa-sync"></i> Actualizar artículos
                     </button>
                     <button class="btn btn-warning" onclick="generar()">
-                        <i class="fas fa-cog"></i> Generar
+                        <i class="fas fa-cog"></i> Generar Qr
                     </button>
                     <button class="btn btn-info" onclick="añadir()">
-                        <i class="fas fa-plus-circle"></i> Añadir
+                        <i class="fas fa-plus-circle"></i> Añadir con Qr
                     </button>
                     <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-secondary">
                         <i class="fas fa-history"></i> Historial de Movimientos
                     </a>
                 </div>
             </div>
-            <div class="table-responsive">
-                <table id="inventarioTable" class="table table-striped table-bordered table-sm small">
-                    <thead>
-                        <tr class="text-sm">
-                            <td>ID</td>
-                            <td>Fecha</td>
-                            <td>Número</td>
-                            <td>Lugar</td>
-                            <td>Columna</td>
-                            <td>Código</td>
-                            <td>Cantidad</td>
-                            @can('admin')
-                            <td>Acciones</td>
-                            @endcan
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($inventario as $i)
-                        <tr @if($i->cantidad == 0) style="background-color: #FF0000;" @endif data-id="{{ $i->id }}">
-                                <td>{{ $i->id }}</td>
-                                <td>{{ $i->fecha }}</td>
-                                <td class="editable" data-field="numero">
-                                    <span class="display-value">{{ $i->numero }}</span>
-                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->numero }}">
-                                </td>
-                                <td class="editable" data-field="lugar">
-                                    <span class="display-value">{{ $i->lugar }}</span>
-                                    <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->lugar }}">
-                                </td>
-                                <td class="editable" data-field="columna">
-                                    <span class="display-value">{{ $i->columna }}</span>
-                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->columna }}">
-                                </td>
-                                <td class="editable" data-field="codigo">
-                                    <span class="display-value">{{ $i->codigo }}</span>
-                                    <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->codigo }}">
-                                </td>
-                                <td class="editable" data-field="cantidad">
-                                    <span class="display-value">{{ $i->cantidad }}</span>
-                                    <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->cantidad }}">
-                                </td>
-                                @can('admin')
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-xs btn-default text-primary mx-1 shadow edit-row-btn" title="Editar fila">
-                                            <i class="fa fa-lg fa-fw fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-xs btn-default text-success mx-1 shadow save-row-btn" style="display: none;" title="Guardar">
-                                            <i class="fa fa-lg fa-fw fa-save"></i>
-                                        </button>
-                                        <button class="btn btn-xs btn-default text-danger mx-1 shadow cancel-edit-btn" style="display: none;" title="Cancelar">
-                                            <i class="fa fa-lg fa-fw fa-times"></i>
-                                        </button>
-                                        <form action="{{ route('inventario.destroy', $i->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar este artículo?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-xs btn-default text-danger mx-1 shadow" title="Eliminar">
-                                                <i class="fa fa-lg fa-fw fa-trash"></i>
-                                            </button>
-                                        </form>
+
+            <div class="row">
+                @php
+                    $inventarioPorLugar = $inventario->groupBy('lugar');
+                @endphp
+
+                @foreach($inventarioPorLugar as $lugar => $itemsPorLugar)
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-primary cursor-pointer" data-toggle="collapse" 
+                                 data-target="#collapse{{ Str::slug($lugar) }}" aria-expanded="false">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title text-white mb-0">
+                                        <i class="fas fa-warehouse"></i> {{ $lugar }}
+                                    </h3>
+                                    <div class="d-flex align-items-center">
+                                        @php
+                                            $articulosAgotados = $itemsPorLugar->where('cantidad', 0)->count();
+                                        @endphp
+
+                                        <span class="badge badge-light mr-3">
+                                            {{ $itemsPorLugar->count() }} artículos
+                                        </span>
+                                        <div class="badge bg-danger text-white mr-3">
+                                            {{ $articulosAgotados }} agotados
+                                        </div>
+                                        <i class="fas fa-chevron-down text-white transition-icon"></i>
                                     </div>
-                                </td>
-                                @endcan
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                            <div id="collapse{{ Str::slug($lugar) }}" class="collapse">
+                                <div class="card-body">
+                                    <div class="row">
+                                        @php
+                                            $itemsPorColumna = $itemsPorLugar->groupBy('columna')->sortKeys();
+                                        @endphp
+
+                                        @foreach($itemsPorColumna as $columna => $items)
+                                            <div class="col-md-6 mb-4">
+                                                <div class="card h-100">
+                                                    <div class="card-header bg-secondary text-white">
+                                                        <h5 class="card-title mb-0 d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <i class="fas fa-columns"></i> Columna {{ $columna }}
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                <div class="badge badge-light mr-2">
+                                                                    {{ $items->count() }} artículos
+                                                                </div>
+                                                                <div class="badge badge-success mr-2">
+                                                                    Total: {{ $items->sum('cantidad') }}
+                                                                </div>
+                                                                @php
+                                                                    $articulosAgotadosColumna = $items->where('cantidad', 0)->count();
+                                                                @endphp
+                                                                <div class="badge bg-danger text-white">
+                                                                    {{ $articulosAgotadosColumna }} agotados
+                                                                </div>
+                                                            </div>
+                                                        </h5>
+                                                    </div>
+                                                    <div class="card-body p-0">
+                                                        <table class="table table-hover mb-0" style="width: 100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 10%">Número</th>
+                                                                    <th style="width: 15%">Lugar</th>
+                                                                    <th style="width: 10%">Columna</th>
+                                                                    <th style="width: 35%">Código</th>
+                                                                    <th style="width: 10%">Cantidad</th>
+                                                                    @can('admin')
+                                                                    <th style="width: 10%">Acciones</th>
+                                                                    @endcan
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach($items->sortBy('numero') as $i)
+                                                                    <tr @if($i->cantidad == 0) class="table-danger" @endif data-id="{{ $i->id }}">
+                                                                        <td class="editable text-center" data-field="numero">
+                                                                            <span class="display-value">{{ $i->numero }}</span>
+                                                                            <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->numero }}">
+                                                                        </td>
+                                                                        <td class="editable text-center" data-field="lugar">
+                                                                            <span class="display-value">{{ $i->lugar }}</span>
+                                                                            <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->lugar }}">
+                                                                        </td>
+                                                                        <td class="editable text-center" data-field="columna">
+                                                                            <span class="display-value">{{ $i->columna }}</span>
+                                                                            <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->columna }}">
+                                                                        </td>
+                                                                        <td class="editable" data-field="codigo">
+                                                                            <span class="display-value">{{ $i->codigo }}</span>
+                                                                            <input type="text" class="form-control edit-input" style="display: none;" value="{{ $i->codigo }}">
+                                                                        </td>
+                                                                        <td class="editable text-center" data-field="cantidad">
+                                                                            <span class="display-value">{{ $i->cantidad }}</span>
+                                                                            <input type="number" class="form-control edit-input" style="display: none;" value="{{ $i->cantidad }}">
+                                                                        </td>
+                                                                        @can('admin')
+                                                                        <td class="text-center">
+                                                                            <div class="btn-group">
+                                                                                <form action="{{ route('inventario.destroy', $i->id) }}" method="POST" class="d-inline">
+                                                                                    @csrf
+                                                                                    @method('DELETE')
+                                                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                                                                                            onclick="return confirm('¿Está seguro de que desea eliminar este artículo?')">
+                                                                                        <i class="fa fa-trash"></i>
+                                                                                    </button>
+                                                                                </form>
+                                                                            </div>
+                                                                        </td>
+                                                                        @endcan
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -240,198 +196,196 @@
     @include('atajos')
     <script>
         $(document).ready(function() {
-            var inventarioTable = $('#inventarioTable').DataTable({
-                "scrollX": true,
-                "order": [[0, "desc"]],
-                "dom": 'Bfrtip',  // Restaurar el dom
-                "buttons": [      // Restaurar los botones
-                    {
-                        "extend": 'excelHtml5',
-                        "text": 'Excel',
-                        "title": 'Inventario_' + new Date().toISOString().split('T')[0],
-                        "exportOptions": {
-                            "columns": [2, 3, 4, 5, 6] // Número, Lugar, Columna, Código, Cantidad
-                        }
-                    },
-                    {
-                        "extend": 'csvHtml5',
-                        "text": 'CSV',
-                        "title": 'Inventario_' + new Date().toISOString().split('T')[0],
-                        "exportOptions": {
-                            "columns": [2, 3, 4, 5, 6]
-                        }
-                    },
-                    {
-                        "extend": 'print',
-                        "text": 'Imprimir',
-                        "autoPrint": true,
-                        "exportOptions": {
-                            "columns": [2, 3, 4, 5, 6]
-                        },
-                        "customize": function(win) {
-                            $(win.document.body).css('font-size', '16pt');
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    },
-                    {
-                        "extend": 'pdfHtml5',
-                        "text": 'PDF',
-                        "filename": 'Inventario_' + new Date().toISOString().split('T')[0],
-                        "pageSize": 'LETTER',
-                        "exportOptions": {
-                            "columns": [2, 3, 4, 5, 6]
-                        }
-                    }
-                ],
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
-                    "search": "Buscar:",
-                    "info": "",
-                    "infoEmpty": "",
-                    "infoFiltered": "",
-                    "paginate": {
-                        "next": "",
-                        "previous": ""
-                    }
-                },
-                "paging": false,
-                "info": false,
-                "searching": true,
-                "stateSave": true
+            // Manejar la rotación del icono en los headers de las tarjetas
+            $('.card-header').on('click', function() {
+                $(this).find('.transition-icon').toggleClass('fa-rotate-180');
             });
 
-            // Vincular los botones superiores con las acciones de DataTables
-            $('.Excel').click(function() {
-                inventarioTable.button('.buttons-excel').trigger();
+            // Inicializar DataTables con configuración simplificada
+            $('.table').DataTable({
+                dom: 't',
+                ordering: false,
+                searching: false,
+                paging: false,
+                info: false,
+                responsive: true,
+                autoWidth: true
             });
 
-            $('.CSV').click(function() {
-                inventarioTable.button('.buttons-csv').trigger();
-            });
-
-            $('.Imprimir').click(function() {
-                inventarioTable.button('.buttons-print').trigger();
-            });
-
-            $('.PDF').click(function() {
-                inventarioTable.button('.buttons-pdf').trigger();
-            });
-
-            // Función para Crear artículo
+            // Funciones de navegación
             window.crearArticulo = function() {
                 window.location.href = "{{ route('inventario.create') }}";
             }
 
-            // Función para Actualizar artículos
             window.actualizarArticulos = function() {
                 window.location.href = "{{ route('inventario.actualizar') }}";
             }
 
-            // Función para Generar
             window.generar = function() {
                 if (confirm('¿Está seguro que desea generar nuevos registros?')) {
-                    // Aquí puedes agregar la lógica para generar
                     window.location.href = "{{ route('generarQR') }}";
                 }
             }
 
-            // Función para Añadir
             window.añadir = function() {
                 window.location.href = "{{ route('leerQR') }}";
             }
 
-            // Vincular las funciones a los botones
-            $('.btn-toolbar').find('button').each(function() {
-                $(this).click(function() {
-                    let action = $(this).attr('onclick');
-                    if (action) {
-                        eval(action);
-                    }
-                });
-            });
-
-            // Hacer las celdas editables al hacer clic
+            // Edición en línea
             $('.editable').on('click', function() {
-                let currentValue = $(this).text().trim();
+                let currentValue = $(this).find('.display-value').text().trim();
                 let field = $(this).data('field');
                 let id = $(this).closest('tr').data('id');
+                let input = $(this).find('.edit-input');
+                let displayValue = $(this).find('.display-value');
                 
-                // Crear el input apropiado según el tipo de campo
-                let input;
-                if (field === 'cantidad' || field === 'numero' || field === 'columna') {
-                    input = $('<input type="number" class="form-control form-control-sm">');
-                } else {
-                    input = $('<input type="text" class="form-control form-control-sm">');
-                }
-                
-                input.val(currentValue);
-                $(this).html(input);
-                input.focus();
+                displayValue.hide();
+                input.show().focus().val(currentValue);
 
-                // Manejar la actualización cuando el input pierde el foco
-                input.on('blur', function() {
+                input.on('blur keypress', function(e) {
+                    if (e.type === 'keypress' && e.which !== 13) return;
+                    
                     let newValue = $(this).val();
-                    let cell = $(this).parent();
+                    if (newValue === currentValue) {
+                        displayValue.show();
+                        input.hide();
+                        return;
+                    }
                     
-                    // Obtener todos los valores de la fila
+                    let cell = $(this).closest('.editable');
                     let row = cell.closest('tr');
-                    let data = {
-                        numero: row.find('[data-field="numero"]').text(),
-                        lugar: row.find('[data-field="lugar"]').text(),
-                        columna: row.find('[data-field="columna"]').text(),
-                        codigo: row.find('[data-field="codigo"]').text(),
-                        cantidad: row.find('[data-field="cantidad"]').text()
-                    };
                     
-                    // Actualizar el valor específico que se está editando
-                    data[field] = newValue;
-
-                    // Enviar la actualización al servidor
-                    $.ajax({
-                        url: `/inventario/${id}/update-inline`,
-                        method: 'POST',
-                        data: data,
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                cell.text(newValue);
-                                // Mostrar mensaje de éxito
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Actualizado',
-                                    text: response.message,
-                                    timer: 1500
-                                });
-                            } else {
-                                // Restaurar valor anterior si hay error
-                                cell.text(currentValue);
+                    // Obtener los valores actuales de la fila
+                    let data = {};
+                    
+                    try {
+                        // Obtener y validar número
+                        let numeroText = row.find('[data-field="numero"] .display-value').text().trim();
+                        data.numero = parseInt(numeroText);
+                        if (isNaN(data.numero)) throw new Error('El número debe ser un valor válido');
+                        
+                        // Obtener lugar y columna directamente de la fila
+                        data.lugar = row.find('[data-field="lugar"] .display-value').text().trim();
+                        if (!data.lugar) throw new Error('El lugar no puede estar vacío');
+                        
+                        data.columna = parseInt(row.find('[data-field="columna"] .display-value').text().trim());
+                        if (isNaN(data.columna)) throw new Error('La columna debe ser un número válido');
+                        
+                        // Obtener y validar código
+                        data.codigo = row.find('[data-field="codigo"] .display-value').text().trim();
+                        if (!data.codigo) throw new Error('El código no puede estar vacío');
+                        
+                        // Obtener y validar cantidad
+                        let cantidadText = row.find('[data-field="cantidad"] .display-value').text().trim();
+                        data.cantidad = parseInt(cantidadText);
+                        if (isNaN(data.cantidad)) throw new Error('La cantidad debe ser un número válido');
+                        
+                        // Actualizar el campo específico con el nuevo valor
+                        if (field === 'numero') {
+                            let newNum = parseInt(newValue);
+                            if (isNaN(newNum) || newNum < 0) throw new Error('El número debe ser un valor válido y no negativo');
+                            data.numero = newNum;
+                        } else if (field === 'cantidad') {
+                            let newCant = parseInt(newValue);
+                            if (isNaN(newCant) || newCant < 0) throw new Error('La cantidad debe ser un valor válido y no negativo');
+                            data.cantidad = newCant;
+                        } else if (field === 'codigo') {
+                            if (!newValue.trim()) throw new Error('El código no puede estar vacío');
+                            data.codigo = newValue.trim();
+                        } else if (field === 'lugar') {
+                            if (!newValue.trim()) throw new Error('El lugar no puede estar vacío');
+                            data.lugar = newValue.trim();
+                        } else if (field === 'columna') {
+                            let newCol = parseInt(newValue);
+                            if (isNaN(newCol) || newCol < 0) throw new Error('La columna debe ser un valor válido y no negativo');
+                            data.columna = newCol;
+                        }
+                        
+                        // Log para debug
+                        console.log('Datos a enviar:', data);
+                        
+                        // Mostrar indicador de carga
+                        cell.addClass('bg-light');
+                        
+                        // Realizar la petición AJAX
+                        $.ajax({
+                            url: `/inventario/${id}/update-inline`,
+                            method: 'POST',
+                            data: data,
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    displayValue.text(newValue).show();
+                                    input.hide();
+                                    
+                                    // Actualizar el valor en la fila
+                                    row.find(`[data-field="${field}"] .display-value`).text(newValue);
+                                    
+                                    // Actualizar clase de fila si la cantidad es 0
+                                    if (field === 'cantidad') {
+                                        if (parseInt(newValue) === 0) {
+                                            row.addClass('table-danger');
+                                        } else {
+                                            row.removeClass('table-danger');
+                                        }
+                                    }
+                                    
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Actualizado',
+                                        text: response.message,
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    displayValue.show();
+                                    input.hide();
+                                    
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: response.message
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                displayValue.show();
+                                input.hide();
+                                
+                                let errorMsg = 'No se pudo actualizar el registro';
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMsg = xhr.responseJSON.message;
+                                }
+                                
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Error',
-                                    text: response.message
+                                    text: errorMsg
                                 });
+                            },
+                            complete: function() {
+                                cell.removeClass('bg-light');
                             }
-                        },
-                        error: function(xhr) {
-                            // Restaurar valor anterior y mostrar error
-                            cell.text(currentValue);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'No se pudo actualizar el registro'
-                            });
-                        }
-                    });
+                        });
+                    } catch (error) {
+                        displayValue.show();
+                        input.hide();
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de validación',
+                            text: error.message
+                        });
+                    }
                 });
 
-                // Manejar la tecla Enter
-                input.on('keypress', function(e) {
-                    if (e.which === 13) {
-                        $(this).blur();
+                // Cancelar edición con Escape
+                input.on('keyup', function(e) {
+                    if (e.key === 'Escape') {
+                        displayValue.show();
+                        input.hide();
                     }
                 });
             });
@@ -441,11 +395,82 @@
 
 @section('css')
     <style>
-        .table td, .table th {
-            padding: 0.5rem;
+        /* Estilos base */
+        .table {
+            width: 100% !important;
+            margin-bottom: 0;
         }
+
+        .table th,
+        .table td {
+            padding: 8px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Ajustes para las celdas editables */
+        .editable {
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .editable:hover {
+            background-color: rgba(0,0,0,.075);
+        }
+
+        .editable .display-value {
+            display: block;
+            min-height: 24px;
+            line-height: 24px;
+        }
+
+        .editable .edit-input {
+            width: 100%;
+            padding: 4px;
+            height: 32px;
+        }
+
+        /* Ajustes para los botones */
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+
+        /* Ajustes para el contenedor de la tabla */
+        .card-body.p-0 {
+            overflow-x: auto;
+        }
+
+        /* Ajustes para DataTables */
+        .dataTables_wrapper {
+            padding: 0;
+        }
+
+        .dataTables_filter {
+            margin: 8px;
+        }
+
+        .table td, .table th {
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+        
         .btn-xs {
-            padding: 0.1rem 0.3rem;
+            padding: 0.2rem 0.4rem;
         }
         
         .small-box {
@@ -491,12 +516,195 @@
         .editable {
             cursor: pointer;
         }
+        
         .editable:hover {
             background-color: #f8f9fa;
         }
+        
         .editable input {
             width: 100%;
             padding: 2px 5px;
+        }
+        
+        .table-danger {
+            background-color: #f8d7da;
+        }
+        
+        .badge {
+            font-size: 90%;
+            padding: 0.5em 1em;
+        }
+
+        .card {
+            margin-bottom: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .transition-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse.show + .card-header .transition-icon {
+            transform: rotate(180deg);
+        }
+        
+        .card-header:hover {
+            background-color: #0056b3 !important;
+        }
+
+        /* Estilos adicionales para las tablas */
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.075);
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #dee2e6;
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .table-sm td, .table-sm th {
+            padding: 0.75rem;
+        }
+
+        /* Centrar contenido de celdas específicas */
+        .table td.editable[data-field="numero"],
+        .table td.editable[data-field="cantidad"] {
+            text-align: center;
+        }
+
+        /* Mejorar visualización de botones de acción */
+        .btn-group .btn-xs {
+            margin: 0 2px;
+        }
+
+        /* Ajustar el badge en el encabezado de columna */
+        .card-header .badge {
+            background-color: white;
+            color: #6c757d;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Ajustar el ancho de las columnas de la tabla */
+        .inventario-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        /* Mejorar la visualización de las celdas editables */
+        .editable .display-value {
+            display: block;
+            min-height: 24px;
+            line-height: 24px;
+        }
+
+        /* Ajustar el padding del contenido de la tarjeta */
+        .card-body {
+            padding: 1rem;
+        }
+
+        /* Mejorar la visualización de las tablas en dispositivos móviles */
+        @media (max-width: 768px) {
+            .col-md-6 {
+                padding: 0 5px;
+            }
+            
+            .table td, .table th {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Ajustes para la tabla */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .inventario-table {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+        }
+
+        .inventario-table th,
+        .inventario-table td {
+            padding: 8px 12px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .inventario-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .inventario-table td.editable[data-field="numero"] {
+            width: 100px;
+            text-align: center;
+        }
+
+        .inventario-table td.editable[data-field="codigo"] {
+            min-width: 250px;
+        }
+
+        .inventario-table td.editable[data-field="cantidad"] {
+            width: 100px;
+            text-align: center;
+        }
+
+        /* Ajustes para las acciones */
+        .inventario-table td:last-child {
+            width: 120px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* Ajustes para el contenedor de la tabla */
+        .card-body.p-0 {
+            padding: 0 !important;
+            margin: 0;
+        }
+
+        /* Ajustes para las celdas editables */
+        .editable .display-value {
+            display: block;
+            width: 100%;
+            text-align: inherit;
+        }
+
+        .editable .edit-input {
+            width: 100%;
+            padding: 4px 8px;
+            text-align: inherit;
+        }
+
+        /* Ajustes para los botones de acción */
+        .btn-group {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .btn-xs {
+            padding: 2px 6px;
+            font-size: 0.875rem;
         }
     </style>
 @stop

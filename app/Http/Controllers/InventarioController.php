@@ -28,49 +28,28 @@ class InventarioController extends Controller
             if (!Schema::hasTable('inventarios')) {
                 return view('inventario.index', [
                     'inventario' => collect(),
-                    'lugares' => collect(),
-                    'columnas' => collect(),
                     'totalCantidad' => 0
                 ]);
             }
 
-            // Obtener todos los lugares distintos de la tabla inventario
-            $lugares = Inventario::select('lugar')
-                ->distinct()
-                ->orderBy('lugar')
-                ->get();
-
-            // Obtener todas las columnas distintas de la tabla inventario
-            $columnas = Inventario::select('columna')
-                ->distinct()
-                ->orderBy('columna')
-                ->get();
-
-            // Construir la consulta del inventario con filtros
+            // Obtener el inventario completo
             $query = Inventario::query();
             
-            if ($request->filled(['fecha', 'lugar'])) {
+            // Si hay fecha seleccionada, aplicar el filtro
+            if ($request->filled('fecha')) {
                 $query->where('fecha', 'like', $request->fecha . '%');
-                
-                if ($request->lugar) {
-                    $query->where('lugar', $request->lugar);
-                }
-                
-                if ($request->filled('columna')) {
-                    $query->where('columna', $request->columna);
-                }
-                
-                $inventario = $query->select('id', 'fecha', 'lugar', 'columna', 'numero', 'codigo', 'cantidad')
-                                   ->orderBy('fecha', 'desc')
-                                   ->get();
-                                   
-                $totalCantidad = $inventario->sum('cantidad');
-            } else {
-                $inventario = collect();
-                $totalCantidad = 0;
             }
+            
+            // Obtener todos los datos ordenados por lugar y columna
+            $inventario = $query->orderBy('lugar')
+                               ->orderBy('columna')
+                               ->orderBy('numero')
+                               ->get();
+            
+            // Calcular el total de cantidad
+            $totalCantidad = $inventario->sum('cantidad');
 
-            return view('inventario.index', compact('inventario', 'lugares', 'columnas', 'totalCantidad'));
+            return view('inventario.index', compact('inventario', 'totalCantidad'));
             
         } catch (\Exception $e) {
             \Log::error('Error en InventarioController@index: ' . $e->getMessage());
@@ -273,15 +252,49 @@ class InventarioController extends Controller
             
             $inventario = Inventario::findOrFail($id);
             
-            $validatedData = $request->validate([
-                'numero' => 'required|integer',
-                'lugar' => 'required|string|max:255',
-                'columna' => 'required|integer',
-                'codigo' => 'required|string|max:255',
-                'cantidad' => 'required|integer|min:0',
-            ]);
+            try {
+                $messages = [
+                    'numero.required' => 'El número es requerido',
+                    'numero.integer' => 'El número debe ser un valor entero',
+                    'lugar.required' => 'El lugar es requerido',
+                    'lugar.string' => 'El lugar debe ser texto',
+                    'lugar.max' => 'El lugar no puede tener más de :max caracteres',
+                    'columna.required' => 'La columna es requerida',
+                    'columna.integer' => 'La columna debe ser un valor entero',
+                    'codigo.required' => 'El código es requerido',
+                    'codigo.string' => 'El código debe ser texto',
+                    'codigo.max' => 'El código no puede tener más de :max caracteres',
+                    'cantidad.required' => 'La cantidad es requerida',
+                    'cantidad.integer' => 'La cantidad debe ser un valor entero',
+                    'cantidad.min' => 'La cantidad no puede ser menor a :min'
+                ];
+
+                $validatedData = $request->validate([
+                    'numero' => 'required|integer',
+                    'lugar' => 'required|string|max:50',
+                    'columna' => 'required|integer',
+                    'codigo' => 'required|string|max:50',
+                    'cantidad' => 'required|integer|min:0',
+                ], $messages);
+
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Error de validación: ', [
+                    'errors' => $e->errors(),
+                    'data_received' => $request->all()
+                ]);
+                
+                // Obtener el primer mensaje de error
+                $firstError = collect($e->errors())->first()[0] ?? 'Error de validación';
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => $firstError
+                ], 422);
+            }
 
             $validatedData['codigo'] = strtoupper($validatedData['codigo']);
+            
+            \Log::info('Datos validados:', ['data' => $validatedData]);
 
             $inventario->update($validatedData);
 
@@ -291,7 +304,10 @@ class InventarioController extends Controller
                 'message' => 'Registro actualizado correctamente'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error en actualización inline: ' . $e->getMessage());
+            \Log::error('Error en actualización inline: ' . $e->getMessage(), [
+                'exception' => $e,
+                'data' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar el registro: ' . $e->getMessage()
