@@ -1,5 +1,8 @@
 @php
     $lastCashHistory = \App\Models\CashHistory::latest()->first();
+    $previousCashHistory = \App\Models\CashHistory::where('estado', 'Cierre')
+                                                 ->latest()
+                                                 ->first();
     $isClosed = !$lastCashHistory || $lastCashHistory->estado !== 'Apertura';
     $showClosingCard = session('showClosingCard', false);
     
@@ -14,38 +17,47 @@
     <div class="text-white" style="max-width: 500px;">
         <div class="text-center mb-4">
             <h1><i class="fas fa-cash-register fa-3x mb-3"></i></h1>
-            <h2>¡Atención! La caja está cerrada</h2>
-            <p>Debe abrir la caja antes de continuar operando en el sistema</p>
+            <h2>Apertura de Caja</h2>
+            
+            @if($previousCashHistory)
+                <div class="alert alert-info">
+                    <p class="mb-1"><strong>Último Cierre:</strong></p>
+                    <p class="mb-1">Usuario: {{ $previousCashHistory->user->name }}</p>
+                    <p class="mb-1">Fecha: {{ $previousCashHistory->created_at->format('d/m/Y H:i') }}</p>
+                    <p class="mb-0">Monto: ${{ number_format($previousCashHistory->monto, 2) }}</p>
+                </div>
+            @endif
         </div>
 
-        <div class="card" style="background-color: #d4edda; border: none;">
-            <div class="card-body">
-                <h5 class="text-dark mb-3">Apertura de Caja</h5>
+        <div class="card shadow">
+            <div class="card-body bg-light">
                 <form action="{{ route('cash-histories.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label for="monto" class="text-dark">Monto Actual</label>
-                        <input type="number" class="form-control" name="monto" id="monto" value="{{ $sumCaja }}" readonly>
+                        <label for="monto">Monto Inicial</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            <input type="number" class="form-control form-control-lg" 
+                                   name="monto" id="monto" value="{{ $sumCaja }}" readonly>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="estado" class="text-dark">Estado</label>
-                        <input type="text" class="form-control" name="estado" id="estado" value="Apertura" readonly>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1 mr-2">
+                    <input type="hidden" name="estado" value="Apertura">
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-success btn-lg flex-grow-1 mr-2">
                             <i class="fas fa-door-open mr-2"></i>Abrir Caja
                         </button>
+                        <a href="{{ route('logout') }}" class="btn btn-danger btn-lg" 
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
                     </div>
                 </form>
-                <div class="d-flex justify-content-start mt-2">
-                    <a href="{{ route('logout') }}" class="btn btn-danger btn-lg" 
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
-                    </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
-                </div>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
             </div>
         </div>
     </div>
@@ -60,17 +72,22 @@
         <div class="text-center mb-4">
             <h1><i class="fas fa-cash-register fa-3x mb-3 text-danger"></i></h1>
             <h2>Cierre de Caja</h2>
-            <p>Por favor confirme el monto de cierre antes de continuar</p>
+            <p>Usuario actual: {{ auth()->user()->name }}</p>
         </div>
 
-        <div class="card" style="background-color: #f8d7da; border: none;">
-            <div class="card-body">
+        <div class="card shadow">
+            <div class="card-body bg-light">
                 <form action="{{ route('cash-histories.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label for="monto_cierre" class="font-weight-bold">Monto de Cierre</label>
-                        <input type="number" step="0.01" class="form-control form-control-lg" 
-                               id="monto_cierre" name="monto" value="{{ $sumCaja }}" readonly required>
+                        <label for="monto_cierre">Monto Final</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            <input type="number" step="0.01" class="form-control form-control-lg" 
+                                   id="monto_cierre" name="monto" value="{{ $sumCaja }}" readonly>
+                        </div>
                     </div>
                     <input type="hidden" name="estado" value="Cierre">
                     
