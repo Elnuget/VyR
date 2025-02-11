@@ -9,6 +9,7 @@ use App\Http\Controllers\PagonuevosController;
 use App\Http\Controllers\HistorialClinicoController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CashHistoryController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,10 +25,6 @@ use App\Http\Controllers\CashHistoryController;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('welcome');
-})->name('dashboard');
 
 // Wrap admin-only routes in admin middleware group
 Route::middleware(['auth:sanctum', 'verified', 'admin'])->group(function () {
@@ -158,4 +155,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Asegúrate de que esta ruta esté antes de otras rutas que puedan interferir
     Route::post('/inventario/{id}/update-inline', [InventarioController::class, 'updateInline'])
         ->name('inventario.update-inline');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });

@@ -10,6 +10,8 @@ class Pedido extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'pedidos';
+
     // Especifica los campos que pueden ser asignados masivamente
     protected $fillable = [
         'fecha',
