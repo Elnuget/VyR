@@ -1,49 +1,62 @@
 @extends('adminlte::page')
 
-@section('title', 'Leer QR')
+@section('title', 'LEER QR')
 
 @section('content_header')
-    <h1>Leer QR</h1>
+    <h1>LEER QR</h1>
 @stop
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Escanear Código QR</h3>
-        </div>
-        <div class="card-body">
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-8 col-lg-6 text-center">
-                    <div class="form-group">
-                        <label for="camera-select">Seleccionar Cámara:</label>
-                        <select id="camera-select" class="form-control mb-4">
-                            <!-- Las opciones se llenarán dinámicamente -->
-                        </select>
-                    </div>
-                    
-                    <div class="video-container mb-4" style="min-height: 300px;">
-                        <video id="preview" style="max-width: 100%; width: 100%;"></video>
-                    </div>
-
-                    <div id="scanResult" class="alert alert-info" style="display: none;">
-                        <p class="mb-0">Código QR detectado. Redirigiendo...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title,
+        .info-box-text,
+        .info-box-number,
+        .custom-select,
+        .btn,
+        label,
+        input,
+        select,
+        option,
+        datalist,
+        datalist option,
+        .form-control,
+        p,
+        h1, h2, h3, h4, h5, h6,
+        th,
+        td,
+        span,
+        a,
+        .dropdown-item,
+        .alert,
+        .modal-title,
+        .modal-body p,
+        .modal-content,
+        .card-header,
+        .card-footer,
+        button,
+        .close {
+            text-transform: uppercase !important;
+        }
+
+        /* Mantener los estilos originales del contenedor de video */
         .video-container {
             position: relative;
             background: #f8f9fa;
             border-radius: 8px;
             overflow: hidden;
+            min-height: 300px;
         }
         
         #preview {
             display: block;
             margin: 0 auto;
+            max-width: 100%;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
@@ -52,6 +65,32 @@
             }
         }
     </style>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">ESCANEAR CÓDIGO QR</h3>
+        </div>
+        <div class="card-body">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6 text-center">
+                    <div class="form-group">
+                        <label for="camera-select">SELECCIONAR CÁMARA:</label>
+                        <select id="camera-select" class="form-control mb-4">
+                            <!-- Las opciones se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                    
+                    <div class="video-container mb-4">
+                        <video id="preview"></video>
+                    </div>
+
+                    <div id="scanResult" class="alert alert-info" style="display: none;">
+                        <p class="mb-0">CÓDIGO QR DETECTADO. REDIRIGIENDO...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('js')
@@ -83,40 +122,35 @@
 
     Instascan.Camera.getCameras().then(function (cameras) {
         if (cameras.length > 0) {
-            // Verifica si el dispositivo es móvil
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            
             let backCamera = null;
 
             cameras.forEach(function(camera, i) {
                 const option = document.createElement('option');
                 option.value = camera.id;
-                option.text = camera.name || `Cámara ${i + 1}`;
+                option.text = camera.name || `CÁMARA ${i + 1}`;
                 cameraSelect.appendChild(option);
 
-                // Detecta la cámara trasera (generalmente contiene "back" en su nombre)
                 if (isMobile && camera.name && camera.name.toLowerCase().includes('back')) {
                     backCamera = camera;
                 }
             });
 
-            // Inicia con la cámara trasera si está disponible
             const defaultCamera = backCamera || cameras[0];
             scanner.start(defaultCamera).catch(function (e) {
                 console.error('Error al iniciar la cámara: ', e);
             });
 
-            // Selecciona la cámara trasera en el selector si está disponible
             if (backCamera) {
                 cameraSelect.value = backCamera.id;
             }
         } else {
-            console.error('No se encontraron cámaras.');
-            alert('No se encontraron cámaras en el dispositivo.');
+            console.error('NO SE ENCONTRARON CÁMARAS.');
+            alert('NO SE ENCONTRARON CÁMARAS EN EL DISPOSITIVO.');
         }
     }).catch(function (e) {
         console.error(e);
-        alert('Error al acceder a la cámara: ' + e);
+        alert('ERROR AL ACCEDER A LA CÁMARA: ' + e);
     });
 </script>
 @stop

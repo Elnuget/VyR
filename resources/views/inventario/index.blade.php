@@ -12,7 +12,7 @@
     @endpush
 
     <h1>Inventario</h1>
-    <p>Administracion de Articulos</p>
+    <p>Administración de Artículos</p>
     @if (session('error'))
         <div class="alert {{ session('tipo') }} alert-dismissible fade show" role="alert">
             <strong> {{ session('mensaje') }}</strong>
@@ -24,6 +24,55 @@
 @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title,
+        .info-box-text,
+        .info-box-number,
+        .custom-select,
+        .btn,
+        label,
+        input,
+        select,
+        option,
+        .datalist,
+        .form-control,
+        p,
+        h1, h2, h3, h4, h5, h6,
+        th,
+        td,
+        span,
+        a,
+        .dropdown-item,
+        .alert,
+        .modal-title,
+        .modal-body p,
+        .dropdown-menu,
+        .nav-link,
+        .menu-item {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que las opciones del datalist también estén en mayúsculas */
+        datalist option {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que los botones de acción estén en mayúsculas */
+        .btn-toolbar .btn {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que los menús desplegables estén en mayúsculas */
+        .dropdown-menu .dropdown-item {
+            text-transform: uppercase !important;
+        }
+    </style>
+
     <div class="card">
         <div class="card-body">
             <form method="GET" class="form-row mb-3">
@@ -45,20 +94,20 @@
             <div class="btn-toolbar mb-3" role="toolbar">
                 <div class="btn-group">
                     <button class="btn btn-success" onclick="crearArticulo()">
-                        <i class="fas fa-plus"></i> Crear artículo
+                        <i class="fas fa-plus"></i> CREAR ARTÍCULO
                     </button>
                     <button class="btn btn-primary" onclick="actualizarArticulos()">
-                        <i class="fas fa-sync"></i> Actualizar artículos
+                        <i class="fas fa-sync"></i> ACTUALIZAR ARTÍCULOS
                     </button>
-                    <button class="btn btn-warning" onclick="generar()">
-                        <i class="fas fa-cog"></i> Generar Qr
+                    <button class="btn btn-warning" onclick="generarQR()">
+                        <i class="fas fa-qrcode"></i> GENERAR QR
                     </button>
-                    <button class="btn btn-info" onclick="añadir()">
-                        <i class="fas fa-plus-circle"></i> Añadir con Qr
+                    <button class="btn btn-info" onclick="añadirQR()">
+                        <i class="fas fa-plus-circle"></i> AÑADIR CON QR
                     </button>
-                    <a href="{{ route('pedidos.inventario-historial') }}" class="btn btn-secondary">
-                        <i class="fas fa-history"></i> Historial de Movimientos
-                    </a>
+                    <button class="btn btn-secondary" onclick="historialMovimientos()">
+                        <i class="fas fa-history"></i> HISTORIAL DE MOVIMIENTOS
+                    </button>
                 </div>
             </div>
 
@@ -221,14 +270,18 @@
                 window.location.href = "{{ route('inventario.actualizar') }}";
             }
 
-            window.generar = function() {
+            window.generarQR = function() {
                 if (confirm('¿Está seguro que desea generar nuevos registros?')) {
                     window.location.href = "{{ route('generarQR') }}";
                 }
             }
 
-            window.añadir = function() {
+            window.añadirQR = function() {
                 window.location.href = "{{ route('leerQR') }}";
+            }
+
+            window.historialMovimientos = function() {
+                window.location.href = "{{ route('pedidos.inventario-historial') }}";
             }
 
             // Edición en línea

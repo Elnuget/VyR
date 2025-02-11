@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Crear usuario')
+@section('title', 'CREAR USUARIO')
 
 @section('content_header')
    
@@ -10,12 +10,12 @@
   
 <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Crear usuario</h3>
+          <h3 class="card-title">CREAR USUARIO</h3>
 
           <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip" title="Collapse">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip" title="COLLAPSE">
               <i class="fas fa-minus"></i></button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="Remove">
+            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="REMOVE">
               <i class="fas fa-times"></i></button>
           </div>
         </div>
@@ -25,45 +25,45 @@
                         @csrf
                         
                         <div class ="form-group">
-                                <label>Nombre</label>
+                                <label>NOMBRE</label>
                                 <input name="nombre" required type="text" class="form-control">
                         </div>
                         <div class ="form-group">
-                                <label>Usuario</label>
+                                <label>USUARIO</label>
                                 <input name="user" required type="text" class="form-control">
                         </div>
                         <div class ="form-group">
-                            <label>Contraseña</label>
+                            <label>CONTRASEÑA</label>
                             <input name="password" required type="password" class="form-control">
                     </div>
                         <div class ="form-group">
-                                <label>E-mail</label>
+                                <label>E-MAIL</label>
                                 <input name="email" required type="mail" class="form-control" >
                         </div>
                         <div class ="form-group">
-                                <label>Activo</label>
+                                <label>ACTIVO</label>
                                 <select id="activo" name="activo" class="form-control">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
+                                <option value="1">ACTIVO</option>
+                                <option value="0">INACTIVO</option>
                                
                                 </select>
                         </div>
-                <button type="button" class="btn btn-primary pull-left" data-toggle="modal" data-target="#modal">Crear usuario</button>
+                <button type="button" class="btn btn-primary pull-left" data-toggle="modal" data-target="#modal">CREAR USUARIO</button>
   <div class="modal fade" id="modal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           
-          <h4 class="modal-title">Crear usuario</h4>
+          <h4 class="modal-title">CREAR USUARIO</h4>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body">
-          <p>Seguro que quiere guardar los cambios?&hellip;</p>
+          <p>¿ESTÁ SEGURO QUE QUIERE GUARDAR LOS CAMBIOS?</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal">CANCELAR</button>
+          <button type="submit" class="btn btn-primary">GUARDAR CAMBIOS</button>
         </div>
       </div>
       <!-- /.modal-content -->
@@ -77,7 +77,7 @@
         </div>
         <!-- /.card-body -->
         <div class="card-footer">
-        Crear cliente
+        CREAR USUARIO
         </div>
         <!-- /.card-footer-->
       </div>
@@ -90,6 +90,6 @@
 
 @section('footer')
    <div class="float-right d-none d-sm-block">
-        <b>Version</b> @version('compact')       
+        <b>VERSIÓN</b> @version('compact')       
     </div>
 @stop

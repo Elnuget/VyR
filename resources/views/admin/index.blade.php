@@ -28,6 +28,20 @@
 @stop
 
 @section('content')
+<style>
+    /* Convertir todo el texto a mayúsculas */
+    body, 
+    .content-wrapper, 
+    .main-header, 
+    .main-sidebar, 
+    .card-title, 
+    .info-box-text, 
+    .info-box-number,
+    .custom-select {
+        text-transform: uppercase !important;
+    }
+</style>
+
 <div class="row">
     {{-- Resumen General de Ventas (Ancho completo) --}}
     <div class="col-12">

@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Crear Articulo')
+@section('title', 'Crear Artículo')
 
 @section('content_header')
     @if (session('error'))
@@ -14,17 +14,64 @@
 @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title,
+        .info-box-text,
+        .info-box-number,
+        .custom-select,
+        .btn,
+        label,
+        input,
+        select,
+        option,
+        datalist,
+        datalist option,
+        .form-control,
+        p,
+        h1, h2, h3, h4, h5, h6,
+        th,
+        td,
+        span,
+        a,
+        .dropdown-item,
+        .alert,
+        .modal-title,
+        .modal-body p,
+        .modal-content,
+        .card-header,
+        .card-footer,
+        button,
+        .close {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que el placeholder también esté en mayúsculas */
+        input::placeholder {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que las opciones del datalist estén en mayúsculas */
+        datalist option {
+            text-transform: uppercase !important;
+        }
+    </style>
+
     <br>
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Crear Articulo</h3>
-
+            <h3 class="card-title">CREAR ARTÍCULO</h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip"
-                    title="Collapse">
-                    <i class="fas fa-minus"></i></button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
                 <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="Remove">
-                    <i class="fas fa-times"></i></button>
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
         <div class="card-body">
@@ -114,7 +161,7 @@
     </div>
     <!-- /.card-body -->
     <div class="card-footer">
-        Crear Articulo
+        CREAR ARTÍCULO
     </div>
     <!-- /.card-footer-->
     </div>
@@ -148,6 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @section('footer')
     <div class="float-right d-none d-sm-block">
-        <b>Version</b> @version('compact')
+        <b>VERSION</b> @version('compact')
     </div>
 @stop

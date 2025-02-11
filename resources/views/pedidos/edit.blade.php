@@ -14,6 +14,26 @@
 @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        .card-title,
+        .card-header h3,
+        .form-label,
+        label,
+        .list-group-item,
+        .input-group-text,
+        .custom-select option,
+        .btn,
+        input::placeholder,
+        select option,
+        .text-muted,
+        strong,
+        p,
+        h1, h2, h3, h4, h5, h6 {
+            text-transform: uppercase !important;
+        }
+    </style>
+
     {{-- Mostrar mensajes de error --}}
     @if ($errors->any())
         <div class="alert alert-danger">

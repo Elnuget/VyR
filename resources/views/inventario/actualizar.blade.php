@@ -3,16 +3,70 @@
 @section('title', 'Actualizar Artículos')
 
 @section('content_header')
-    <h1>Actualizar Artículos</h1>
+    <h1>ACTUALIZAR ARTÍCULOS</h1>
 @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title,
+        .info-box-text,
+        .info-box-number,
+        .custom-select,
+        .btn,
+        label,
+        input,
+        select,
+        option,
+        datalist,
+        datalist option,
+        .form-control,
+        p,
+        h1, h2, h3, h4, h5, h6,
+        th,
+        td,
+        span,
+        a,
+        .dropdown-item,
+        .alert,
+        .modal-title,
+        .modal-body p,
+        .modal-content,
+        .card-header,
+        .card-footer,
+        button,
+        .close,
+        .table thead th,
+        .table tbody td,
+        .dataTables_filter,
+        .dataTables_info,
+        .paginate_button,
+        .alert-info {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que el placeholder también esté en mayúsculas */
+        input::placeholder,
+        .dataTables_filter input::placeholder {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que las opciones del datalist estén en mayúsculas */
+        datalist option {
+            text-transform: uppercase !important;
+        }
+    </style>
+
     <div class="row">
         {{-- Tarjeta de Creación (Izquierda) --}}
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Crear Nuevo Artículo</h3>
+                    <h3 class="card-title">CREAR NUEVO ARTÍCULO</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
                             <i class="fas fa-minus"></i>
@@ -83,7 +137,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Artículos sin orden asignada</h3>
+                    <h3 class="card-title">ARTÍCULOS SIN ORDEN ASIGNADA</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
                             <i class="fas fa-minus"></i>
@@ -93,7 +147,7 @@
                 <div class="card-body">
                     @if($inventario->isEmpty())
                         <div class="alert alert-info">
-                            No hay artículos sin orden asignada.
+                            NO HAY ARTÍCULOS SIN ORDEN ASIGNADA.
                         </div>
                     @else
                         <div class="table-responsive">
@@ -101,11 +155,11 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Código</th>
-                                        <th>Cantidad</th>
-                                        <th>Lugar</th>
-                                        <th>Fecha</th>
-                                        <th>Acciones</th>
+                                        <th>CÓDIGO</th>
+                                        <th>CANTIDAD</th>
+                                        <th>LUGAR</th>
+                                        <th>FECHA</th>
+                                        <th>ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody>

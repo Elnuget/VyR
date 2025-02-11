@@ -1,22 +1,63 @@
 @extends('adminlte::page')
 
-@section('title', 'Ver Pago')
+@section('title', 'VER PAGO')
 
 @section('content_header')
-<h2>Ver Pago</h2>
+<h2>VER PAGO</h2>
 @stop
 
 @section('content')
+<style>
+    /* Convertir todo el texto a mayúsculas */
+    body, 
+    .content-wrapper, 
+    .main-header, 
+    .main-sidebar, 
+    .card-title,
+    .info-box-text,
+    .info-box-number,
+    .custom-select,
+    .btn,
+    label,
+    input,
+    select,
+    option,
+    datalist,
+    datalist option,
+    .form-control,
+    p,
+    h1, h2, h3, h4, h5, h6,
+    th,
+    td,
+    span,
+    a,
+    .dropdown-item,
+    .alert,
+    .modal-title,
+    .modal-body p,
+    .modal-content,
+    .card-header,
+    .card-footer,
+    button,
+    .close,
+    .table thead th,
+    .table tbody td,
+    li,
+    strong {
+        text-transform: uppercase !important;
+    }
+</style>
+
 <br>
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">
-            Pago {{ $pago->id }}</h3>
+            PAGO {{ $pago->id }}</h3>
         <div class="card-tools">
             <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip"
-                title="Collapse">
+                title="COLLAPSE">
                 <i class="fas fa-minus"></i></button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="Remove">
+            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="REMOVE">
                 <i class="fas fa-times"></i></button>
         </div>
     </div>
@@ -24,30 +65,28 @@
         <div class="col-md-6">
             <ul>
                 <li><strong>ID:</strong> {{ $pago->id }}</li>
-                <li><strong>Fecha de Pago:</strong> {{ $pago->created_at->format('d-m-Y') }}</li>
-                <li><strong>Método de Pago:</strong> {{ $pago->mediodepago->medio_de_pago }}</li>
-                <li><strong>Pedido ID:</strong> {{ $pago->pedido->id }}</li>
-                <li><strong>Saldo del Pedido:</strong> {{ $pago->pedido->saldo }}</li>
-                <li><strong>Pago:</strong> {{ $pago->pago }}</li>
+                <li><strong>FECHA DE PAGO:</strong> {{ $pago->created_at->format('d-m-Y') }}</li>
+                <li><strong>MÉTODO DE PAGO:</strong> {{ strtoupper($pago->mediodepago->medio_de_pago) }}</li>
+                <li><strong>PEDIDO ID:</strong> {{ $pago->pedido->id }}</li>
+                <li><strong>SALDO DEL PEDIDO:</strong> {{ $pago->pedido->saldo }}</li>
+                <li><strong>PAGO:</strong> {{ $pago->pago }}</li>
             </ul>
         </div>
     </div>
-    <!-- /.card-body -->
     <div class="card-footer">
-        Ver Pago
+        VER PAGO
     </div>
-    <!-- /.card-footer-->
 </div>
 <br>
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">
-            Detalle del Pago {{ $pago->id }}</h3>
+            DETALLE DEL PAGO {{ $pago->id }}</h3>
         <div class="card-tools">
             <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip"
-                title="Collapse">
+                title="COLLAPSE">
                 <i class="fas fa-minus"></i></button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="Remove">
+            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="REMOVE">
                 <i class="fas fa-times"></i></button>
         </div>
     </div>
@@ -56,18 +95,18 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Fecha de Pago</th>
-                    <th>Método de Pago</th>
-                    <th>Pedido ID</th>
-                    <th>Saldo del Pedido</th>
-                    <th>Pago</th>
+                    <th>FECHA DE PAGO</th>
+                    <th>MÉTODO DE PAGO</th>
+                    <th>PEDIDO ID</th>
+                    <th>SALDO DEL PEDIDO</th>
+                    <th>PAGO</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>{{ $pago->id }}</td>
                     <td>{{ $pago->created_at->format('d-m-Y') }}</td>
-                    <td>{{ $pago->mediodepago->medio_de_pago }}</td>
+                    <td>{{ strtoupper($pago->mediodepago->medio_de_pago) }}</td>
                     <td>{{ $pago->pedido->id }}</td>
                     <td>{{ $pago->pedido->saldo }}</td>
                     <td>{{ $pago->pago }}</td>
@@ -95,12 +134,10 @@
             buttons: [
                 'excelHtml5',
                 'csvHtml5',
-
                 {
                     extend: 'print',
-                    text: 'Imprimir',
+                    text: 'IMPRIMIR',
                     autoPrint: true,
-
                     customize: function (win) {
                         $(win.document.body).css('font-size', '16pt');
                         $(win.document.body).find('table')
@@ -111,9 +148,8 @@
                 {
                     extend: 'pdfHtml5',
                     text: 'PDF',
-                    filename: 'Pago.pdf',
-
-                    title: 'Pago {{ $pago->id }}',
+                    filename: 'PAGO.PDF',
+                    title: 'PAGO {{ $pago->id }}',
                     pageSize: 'LETTER',
                 }
             ],

@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Editar Pago')
+@section('title', 'EDITAR PAGO')
 
 @section('content_header')
 @if(session('error'))
@@ -14,57 +14,94 @@
 @stop
 
 @section('content')
+<style>
+    /* Convertir todo el texto a mayúsculas */
+    body, 
+    .content-wrapper, 
+    .main-header, 
+    .main-sidebar, 
+    .card-title,
+    .info-box-text,
+    .info-box-number,
+    .custom-select,
+    .btn,
+    label,
+    input,
+    select,
+    option,
+    datalist,
+    datalist option,
+    .form-control,
+    p,
+    h1, h2, h3, h4, h5, h6,
+    th,
+    td,
+    span,
+    a,
+    .dropdown-item,
+    .alert,
+    .modal-title,
+    .modal-body p,
+    .modal-content,
+    .card-header,
+    .card-footer,
+    button,
+    .close,
+    strong,
+    .select2-selection__rendered {
+        text-transform: uppercase !important;
+    }
+</style>
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Editar Pago</h3>
+        <h3 class="card-title">EDITAR PAGO</h3>
 
         <div class="card-tools">
             <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip"
-                title="Collapse">
+                title="COLLAPSE">
                 <i class="fas fa-minus"></i></button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="Remove">
+            <button type="button" class="btn btn-tool" data-card-widget="remove" data-toggle="tooltip" title="REMOVE">
                 <i class="fas fa-times"></i></button>
         </div>
     </div>
     <div class="card-body">
         <div class="col-md-6">
             <form role="form" action="{{ route('pagos.update', $pago->id) }}" method="POST">
-
                 @csrf
                 @method('put')
-                <!-- Removed Paciente selection -->
                 
                 <div class="form-group">
-                    <label>Seleccione un Pedido</label>
+                    <label>SELECCIONE UN PEDIDO</label>
                     <select name="pedido_id" id="pedido_id" required class="form-control">
-                        <option value="">Seleccionar el pedido</option>
+                        <option value="">SELECCIONAR EL PEDIDO</option>
                         @foreach($pedidos as $pedido)
                             <option value="{{ $pedido->id }}" data-saldo="{{ $pedido->saldo }}" {{ $pedido->id == $pago->pedido_id ? 'selected' : '' }}>
-                                Orden: {{ $pedido->numero_orden }} - Cliente: {{ $pedido->cliente }}
+                                ORDEN: {{ $pedido->numero_orden }} - CLIENTE: {{ $pedido->cliente }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label>Seleccione un Medio de Pago</label>
+                    <label>SELECCIONE UN MEDIO DE PAGO</label>
                     <select name="mediodepago_id" class="form-control">
-                      
-                      <option value="">Seleccionar el método de pago</option>
+                        <option value="">SELECCIONAR EL MÉTODO DE PAGO</option>
                         @foreach($mediosdepago as $medioDePago)
-                            <option value="{{ $medioDePago->id }}" @if($medioDePago->id == $pago->mediodepago_id) selected @endif>{{ $medioDePago->medio_de_pago }}</option>
+                            <option value="{{ $medioDePago->id }}" @if($medioDePago->id == $pago->mediodepago_id) selected @endif>
+                                {{ strtoupper($medioDePago->medio_de_pago) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label>Saldo</label>
+                    <label>SALDO</label>
                     <input name="saldo" id="saldo" type="text" class="form-control" value="{{ $pago->pedido->saldo + $pago->pago }}" readonly>
                 </div>
                 
                 <div class="form-group">
-                    <label>Pago</label>
+                    <label>PAGO</label>
                     <input name="pago" 
                            required 
                            type="text" 
@@ -75,7 +112,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Fecha de Creación</label>
+                    <label>FECHA DE CREACIÓN</label>
                     <input name="created_at" 
                            type="datetime-local" 
                            class="form-control" 
@@ -86,54 +123,45 @@
                     <div class="alert alert-danger">
                         <ul>
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                <li>{{ strtoupper($error) }}</li>
                             @endforeach
                         </ul>
                     </div>
                 @endif
 
-                <button type="button" class="btn btn-primary pull-left" data-toggle="modal"
-                    data-target="#modal">Editar
-                    Pago</button>
-                <a href="{{ route('pagos.index') }}" class="btn btn-secondary ">
-                    Cancelar
+                <button type="button" class="btn btn-primary pull-left" data-toggle="modal" data-target="#modal">
+                    EDITAR PAGO
+                </button>
+                <a href="{{ route('pagos.index') }}" class="btn btn-secondary">
+                    CANCELAR
                 </a>
+
                 <div class="modal fade" id="modal">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-
-                                <h4 class="modal-title">Modificar pago</h4>
+                                <h4 class="modal-title">MODIFICAR PAGO</h4>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span></button>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
                             <div class="modal-body">
-                                <p>Seguro que quiere guardar los cambios?&hellip;</p>
+                                <p>¿ESTÁ SEGURO QUE QUIERE GUARDAR LOS CAMBIOS?</p>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-default pull-left"
-                                    data-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">CANCELAR</button>
+                                <button type="submit" class="btn btn-primary">GUARDAR CAMBIOS</button>
                             </div>
                         </div>
-                        <!-- /.modal-content -->
                     </div>
-                    <!-- /.modal-dialog -->
                 </div>
             </form>
         </div>
-
-        <br>
-        <!-- Fin contenido -->
+    </div>
+    <div class="card-footer">
+        EDITAR PAGO
     </div>
 </div>
-<!-- /.card-body -->
-<div class="card-footer">
-    Editar Pago
-</div>
-<!-- /.card-footer-->
-</div>
-
 @stop
 
 @section('js')
@@ -160,9 +188,8 @@
 </script>
 @stop
 
-
 @section('footer')
 <div class="float-right d-none d-sm-block">
-    <b>Version</b> @version('compact')
+    <b>VERSIÓN</b> @version('compact')
 </div>
 @stop

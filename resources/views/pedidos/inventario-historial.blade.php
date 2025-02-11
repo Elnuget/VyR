@@ -1,12 +1,63 @@
 @extends('adminlte::page')
 
-@section('title', 'Historial de Movimientos')
+@section('title', 'HISTORIAL DE MOVIMIENTOS')
 
 @section('content_header')
-    <h1>Historial de Armazones y Pedidos</h1>
+    <h1>HISTORIAL DE ARMAZONES Y PEDIDOS</h1>
 @stop
 
 @section('content')
+<style>
+    /* Convertir todo el texto a mayúsculas */
+    body, 
+    .content-wrapper, 
+    .main-header, 
+    .main-sidebar, 
+    .card-title,
+    .info-box-text,
+    .info-box-number,
+    .custom-select,
+    .btn,
+    label,
+    input,
+    select,
+    option,
+    datalist,
+    datalist option,
+    .form-control,
+    p,
+    h1, h2, h3, h4, h5, h6,
+    th,
+    td,
+    span,
+    a,
+    .dropdown-item,
+    .alert,
+    .modal-title,
+    .modal-body p,
+    .modal-content,
+    .card-header,
+    .card-footer,
+    button,
+    .close,
+    .table thead th,
+    .table tbody td,
+    .dataTables_filter,
+    .dataTables_info,
+    .paginate_button,
+    .alert-info,
+    .form-select,
+    .badge {
+        text-transform: uppercase !important;
+    }
+
+    /* Asegurar que el placeholder también esté en mayúsculas */
+    input::placeholder,
+    .dataTables_filter input::placeholder {
+        text-transform: uppercase !important;
+    }
+</style>
+
 <div class="container">
     <div class="card">
         <div class="card-body">
@@ -14,97 +65,84 @@
             <div class="row mb-4">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Lugar</label>
+                        <label>LUGAR</label>
                         <select class="form-control" id="filtroCategoria">
-                            <option value="">Todos los lugares</option>
-                            <option value="Cajón de armazones">Cajón de armazones</option>
-                            <option value="Cosas Extras">Cosas Extras</option>
-                            <option value="Estuches">Estuches</option>
-                            <option value="Gotero">Gotero</option>
-                            <option value="Goteros">Goteros</option>
-                            <option value="Líquidos">Líquidos</option>
-                            <option value="Propio">Propio</option>
-                            <option value="Soporte 1">Soporte 1</option>
-                            <option value="Soporte 2">Soporte 2</option>
-                            <option value="Soporte 3">Soporte 3</option>
-                            <option value="Soporte 4">Soporte 4</option>
-                            <option value="Soporte 5">Soporte 5</option>
-                            <option value="Soporte 6">Soporte 6</option>
-                            <option value="Vitrina">Vitrina</option>
+                            <option value="">TODOS LOS LUGARES</option>
+                            <option value="CAJÓN DE ARMAZONES">CAJÓN DE ARMAZONES</option>
+                            <option value="COSAS EXTRAS">COSAS EXTRAS</option>
+                            <option value="ESTUCHES">ESTUCHES</option>
+                            <option value="GOTERO">GOTERO</option>
+                            <option value="GOTEROS">GOTEROS</option>
+                            <option value="LÍQUIDOS">LÍQUIDOS</option>
+                            <option value="PROPIO">PROPIO</option>
+                            <option value="SOPORTE 1">SOPORTE 1</option>
+                            <option value="SOPORTE 2">SOPORTE 2</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Estado de Stock</label>
+                        <label>ESTADO DE STOCK</label>
                         <select class="form-control" id="filtroStock">
-                            <option value="">Todos</option>
-                            <option value="con">Con Stock</option>
-                            <option value="sin">Sin Stock</option>
+                            <option value="">TODOS</option>
+                            <option value="EN STOCK">EN STOCK</option>
+                            <option value="SIN STOCK">SIN STOCK</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Movimientos</label>
+                        <label>MOVIMIENTOS</label>
                         <select class="form-control" id="filtroMovimientos">
-                            <option value="">Todos</option>
-                            <option value="con">Con Movimientos</option>
-                            <option value="sin">Sin Movimientos</option>
+                            <option value="">TODOS</option>
+                            <option value="VENDIDO">VENDIDO</option>
+                            <option value="EN STOCK">EN STOCK</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Buscar</label>
-                        <input type="text" class="form-control" id="busquedaRapida" placeholder="Código o descripción...">
+                        <label>BUSCAR</label>
+                        <input type="text" class="form-control" id="filtroBusqueda" placeholder="CÓDIGO O DESCRIPCIÓN...">
                     </div>
                 </div>
             </div>
 
-            <!-- Resumen -->
+            <!-- Contadores -->
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            <h3 id="totalArticulos">0</h3>
-                            <p>Total Artículos</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-glasses"></i>
+                    <div class="info-box bg-info">
+                        <span class="info-box-icon"><i class="fas fa-glasses"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">TOTAL ARTÍCULOS</span>
+                            <span class="info-box-number" id="totalArticulos">0</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="small-box bg-success">
-                        <div class="inner">
-                            <h3 id="totalStock">0</h3>
-                            <p>Total en Stock</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-box"></i>
+                    <div class="info-box bg-success">
+                        <span class="info-box-icon"><i class="fas fa-box"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">TOTAL EN STOCK</span>
+                            <span class="info-box-number" id="totalStock">0</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            <h3 id="totalVentas">0</h3>
-                            <p>Total Vendidos</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-shopping-cart"></i>
+                    <div class="info-box bg-warning">
+                        <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">TOTAL VENDIDOS</span>
+                            <span class="info-box-number" id="totalVendidos">0</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="small-box bg-danger">
-                        <div class="inner">
-                            <h3 id="sinStock">0</h3>
-                            <p>Sin Stock</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-exclamation-triangle"></i>
+                    <div class="info-box bg-danger">
+                        <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">SIN STOCK</span>
+                            <span class="info-box-number" id="sinStock">0</span>
                         </div>
                     </div>
                 </div>
@@ -112,25 +150,23 @@
 
             <!-- Tabla de Inventario -->
             <div class="table-responsive">
-                <table class="table table-striped" id="tablaHistorial">
+                <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Código</th>
-                            <th>Categoría</th>
-                            <th>Stock Actual</th>
-                            <th>Historial de Ventas</th>
-                            <th>Último Movimiento</th>
+                            <th>CÓDIGO</th>
+                            <th>CATEGORÍA</th>
+                            <th>STOCK ACTUAL</th>
+                            <th>HISTORIAL DE VENTAS</th>
+                            <th>ÚLTIMO MOVIMIENTO</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($inventario as $item)
-                        <tr data-categoria="{{ strtoupper(explode(' ', $item->lugar)[0]) }}" 
-                            data-stock="{{ $item->cantidad > 0 ? 'con' : 'sin' }}"
-                            data-movimientos="{{ $item->pedidos->count() > 0 ? 'con' : 'sin' }}">
+                        <tr>
                             <td>{{ $item->codigo }}</td>
                             <td>{{ $item->lugar }}</td>
                             <td>
-                                <span class="badge badge-{{ $item->cantidad > 0 ? 'success' : 'danger' }}">
+                                <span class="badge {{ $item->cantidad > 0 ? 'bg-success' : 'bg-danger' }}">
                                     {{ $item->cantidad }}
                                 </span>
                             </td>
@@ -171,13 +207,7 @@
                                     <span class="text-muted">Sin movimientos</span>
                                 @endif
                             </td>
-                            <td>
-                                @if($item->pedidos->count() > 0)
-                                    {{ \Carbon\Carbon::parse($item->pedidos->sortByDesc('fecha')->first()->fecha)->format('d/m/Y') }}
-                                @else
-                                    -
-                                @endif
-                            </td>
+                            <td>{{ $item->updated_at->format('d/m/Y') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -237,7 +267,7 @@ $(document).ready(function() {
         $('#sinStock').text(filas.filter(function() {
             return parseInt($(this).find('td:eq(2)').text()) === 0;
         }).length);
-        $('#totalVentas').text(filas.filter(function() {
+        $('#totalVendidos').text(filas.filter(function() {
             return $(this).find('td:eq(3)').text().trim() !== 'Sin movimientos';
         }).length);
     }
@@ -248,7 +278,7 @@ $(document).ready(function() {
     });
 
     // Búsqueda rápida
-    $('#busquedaRapida').on('keyup', function() {
+    $('#filtroBusqueda').on('keyup', function() {
         tabla.search(this.value).draw();
     });
 

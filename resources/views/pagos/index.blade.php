@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 
-@section('title', 'Pagos')
+@section('title', 'PAGOS')
 
 @section('content_header')
-    <h1>Pagos</h1>
-    <p>Administracion de Pagos</p>
+    <h1>PAGOS</h1>
+    <p>ADMINISTRACIÓN DE PAGOS</p>
     @if (session('error'))
         <div class="alert {{ session('tipo') }} alert-dismissible fade show" role="alert">
             <strong> {{ session('mensaje') }}</strong>
@@ -16,6 +16,55 @@
 @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title,
+        .info-box-text,
+        .info-box-number,
+        .custom-select,
+        .btn,
+        label,
+        input,
+        select,
+        option,
+        datalist,
+        datalist option,
+        .form-control,
+        p,
+        h1, h2, h3, h4, h5, h6,
+        th,
+        td,
+        span,
+        a,
+        .dropdown-item,
+        .alert,
+        .modal-title,
+        .modal-body p,
+        .modal-content,
+        .card-header,
+        .card-footer,
+        button,
+        .close,
+        .table thead th,
+        .table tbody td,
+        .dataTables_filter,
+        .dataTables_info,
+        .paginate_button,
+        .info-box span {
+            text-transform: uppercase !important;
+        }
+
+        /* Asegurar que el placeholder también esté en mayúsculas */
+        input::placeholder,
+        .dataTables_filter input::placeholder {
+            text-transform: uppercase !important;
+        }
+    </style>
+
     <div class="card">
         <div class="card-body">
             {{-- Agregar resumen de totales --}}
@@ -23,7 +72,7 @@
                 <div class="col-md-4">
                     <div class="info-box bg-success">
                         <div class="info-box-content">
-                            <span class="info-box-text">Total Pagos</span>
+                            <span class="info-box-text">TOTAL PAGOS</span>
                             <span class="info-box-number">${{ number_format($totalPagos, 2, ',', '.') }}</span>
                         </div>
                     </div>
@@ -33,44 +82,44 @@
             {{-- Agregar formulario de filtro --}}
             <form method="GET" class="form-row mb-3" id="filterForm">
                 <div class="col-md-2">
-                    <label for="filtroAno">Seleccionar Año:</label>
-                    <select name="ano" class="form-control" id="filtroAno">
-                        <option value="">Seleccione Año</option>
+                    <label for="filtroAno">SELECCIONAR AÑO:</label>
+                    <select name="ano" class="form-control custom-select" id="filtroAno">
+                        <option value="">SELECCIONE AÑO</option>
                         @for ($year = date('Y'); $year >= 2000; $year--)
                             <option value="{{ $year }}" {{ request('ano') == $year ? 'selected' : '' }}>{{ $year }}</option>
                         @endfor
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="filtroMes">Seleccionar Mes:</label>
-                    <select name="mes" class="form-control" id="filtroMes">
-                        <option value="">Seleccione Mes</option>
-                        @foreach (range(1, 12) as $m)
-                            <option value="{{ $m }}" {{ request('mes') == $m ? 'selected' : '' }}>
-                                {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                    <label for="filtroMes">SELECCIONAR MES:</label>
+                    <select name="mes" class="form-control custom-select" id="filtroMes">
+                        <option value="">SELECCIONE MES</option>
+                        @foreach (['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'] as $index => $month)
+                            <option value="{{ $index + 1 }}" {{ request('mes') == ($index + 1) ? 'selected' : '' }}>
+                                {{ $month }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="metodo_pago">Método de Pago:</label>
-                    <select name="metodo_pago" class="form-control" id="metodo_pago">
-                        <option value="">Todos los métodos</option>
+                    <label for="metodo_pago">MÉTODO DE PAGO:</label>
+                    <select name="metodo_pago" class="form-control custom-select" id="metodo_pago">
+                        <option value="">TODOS LOS MÉTODOS</option>
                         @foreach($mediosdepago as $medio)
                             <option value="{{ $medio->id }}" {{ request('metodo_pago') == $medio->id ? 'selected' : '' }}>
-                                {{ $medio->medio_de_pago }}
+                                {{ strtoupper($medio->medio_de_pago) }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2 align-self-end">
-                    <button type="button" class="btn btn-primary" id="actualButton">Actual</button>
+                    <button type="button" class="btn btn-primary" id="actualButton">ACTUAL</button>
                 </div>
             </form>
 
             {{-- Botón Añadir Pago --}}
             <div class="btn-group mb-3">
-                <a type="button" class="btn btn-success" href="{{ route('pagos.create') }}">Añadir Pago</a>
+                <a type="button" class="btn btn-success" href="{{ route('pagos.create') }}">AÑADIR PAGO</a>
             </div>
 
             <div class="table-responsive">
@@ -81,14 +130,14 @@
                         </tr>
                         <tr>
                             <td>ID</td>
-                            <td>Fecha de Pago</td> <!-- Nueva columna -->
-                            <td>Orden Asociada</td> <!-- Nueva columna -->
-                            <td>Cliente Asociado</td> <!-- Nueva columna -->
+                            <td>FECHA DE PAGO</td> <!-- Nueva columna -->
+                            <td>ORDEN ASOCIADA</td> <!-- Nueva columna -->
+                            <td>CLIENTE ASOCIADO</td> <!-- Nueva columna -->
                             <!-- Removed Paciente column -->
-                            <td>Método de pago</td>
-                            <td>Saldo</td>
-                            <td>Pago</td>
-                            <td>Acciones</td>
+                            <td>MÉTODO DE PAGO</td>
+                            <td>SALDO</td>
+                            <td>PAGO</td>
+                            <td>ACCIONES</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,20 +189,20 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Confirmar Eliminación</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">CONFIRMAR ELIMINACIÓN</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    ¿Estás seguro de que deseas eliminar este elemento?
+                    ¿ESTÁS SEGURO DE QUE DESEAS ELIMINAR ESTE ELEMENTO?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">CANCELAR</button>
                     <form id="eliminarForm" method="post" action="">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                        <button type="submit" class="btn btn-danger">ELIMINAR</button>
                     </form>
                 </div>
             </div>
@@ -193,7 +242,7 @@
                     'csvHtml5',
                     {
                         "extend": 'print',
-                        "text": 'Imprimir',
+                        "text": 'IMPRIMIR',
                         "autoPrint": true,
                         "exportOptions": {
                             "columns": [0, 1, 2, 3, 4, 5, 6] // Incluir nueva columna

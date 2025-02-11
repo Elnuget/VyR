@@ -7,6 +7,19 @@
 @stop
 
 @section('content')
+<style>
+    /* Convertir todo el texto a mayúsculas */
+    .card-title,
+    .list-group-item,
+    .table th,
+    .table td,
+    .text-muted,
+    h2,
+    h3,
+    strong {
+        text-transform: uppercase !important;
+    }
+</style>
 <br>
 <div class="card">
     <div class="card-header">

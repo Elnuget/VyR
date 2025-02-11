@@ -14,6 +14,20 @@
 @endif @stop
 
 @section('content')
+    <style>
+        /* Convertir todo el texto a mayúsculas */
+        body, 
+        .content-wrapper, 
+        .main-header, 
+        .main-sidebar, 
+        .card-title, 
+        .info-box-text, 
+        .info-box-number,
+        .custom-select,
+        .btn {
+            text-transform: uppercase !important;
+        }
+    </style>
 
 <div class="card">
     <div class="card-body">
@@ -58,12 +72,10 @@
             </div>
             <div class="col-md-2">
                 <label for="filtroMes">Seleccionar Mes:</label>
-                <select name="mes" class="form-control" id="filtroMes">
+                <select name="mes" class="form-control custom-select" id="filtroMes">
                     <option value="">Seleccione Mes</option>
-                    @foreach (range(1, 12) as $m)
-                        <option value="{{ $m }}" {{ request('mes', date('n')) == $m ? 'selected' : '' }}>
-                            {{ DateTime::createFromFormat('!m', $m)->format('F') }}
-                        </option>
+                    @foreach (['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as $index => $month)
+                        <option value="{{ $index + 1 }}" {{ request('mes') == ($index + 1) ? 'selected' : '' }}>{{ $month }}</option>
                     @endforeach
                 </select>
             </div>
@@ -74,7 +86,7 @@
 
         {{-- Botones de acción --}}
         <div class="btn-group mb-3">
-            <a type="button" class="btn btn-success" href="{{ route('pedidos.create') }}">Añadir pedido</a>
+            <a href="{{ route('pedidos.create') }}" class="btn btn-primary">Crear Pedido</a>
         </div>
 
         {{-- Filtro por mes (removed) --}}
