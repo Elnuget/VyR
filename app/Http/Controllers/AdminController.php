@@ -37,19 +37,45 @@ class AdminController extends Controller
             $selectedYear = $request->get('year', $hoy->year);
             $selectedMonth = $request->get('month', $hoy->month);
 
-            // Inicializar variables con valores por defecto en caso de error
+            // Inicializar variables con valores por defecto
             $pedidos = collect();
             $salesData = ['years' => [$hoy->year], 'totals' => [0]];
             $salesDataMonthly = ['months' => [], 'totals' => []];
-            $userSalesData = ['users' => ['Sin datos'], 'totals' => [0]];
+            $userSalesData = [
+                'users' => ['Sin datos'],
+                'totals' => [0],
+                'quantities' => [0]  // Valor por defecto para cantidades
+            ];
             $ventasPorLugar = collect([(object)[
                 'lugar' => 'Sin datos',
                 'cantidad_vendida' => 0,
                 'total_ventas' => 0
             ]]);
 
-            // Intentar obtener los datos
             try {
+                // Obtener datos de ventas por usuario incluyendo cantidades
+                $users = DB::table('pedidos')
+                    ->select(
+                        'usuario',
+                        DB::raw('SUM(total) as total_ventas'),
+                        DB::raw('COUNT(*) as total_cantidad') // Usamos COUNT como alternativa si no existe columna cantidad
+                    )
+                    ->whereYear('fecha', $selectedYear)
+                    ->when($selectedMonth, function($query) use ($selectedMonth) {
+                        return $query->whereMonth('fecha', $selectedMonth);
+                    })
+                    ->groupBy('usuario')
+                    ->orderBy('total_ventas', 'desc')
+                    ->get();
+
+                if ($users->isNotEmpty()) {
+                    $userSalesData = [
+                        'users' => $users->pluck('usuario')->toArray(),
+                        'totals' => $users->pluck('total_ventas')->toArray(),
+                        'quantities' => $users->pluck('total_cantidad')->toArray()
+                    ];
+                }
+
                 // Construir la consulta base con los filtros
                 $query = Pedido::query();
                 $query->whereYear('fecha', $selectedYear);
@@ -64,13 +90,12 @@ class AdminController extends Controller
 
                 $salesData = $this->getSalesData();
                 $salesDataMonthly = $this->getMonthlySalesData($selectedYear);
-                $userSalesData = $this->getUserSalesData($selectedYear, $selectedMonth);
                 $ventasPorLugar = $this->getVentasPorLugar($selectedYear, $selectedMonth);
                 $datosGraficoPuntuaciones = $this->getDatosGraficoPuntuaciones($selectedYear, $selectedMonth);
 
             } catch (\Exception $e) {
-                \Log::error('Error obteniendo datos: ' . $e->getMessage());
-                // No retornamos error aquí, seguimos con los datos por defecto
+                \Log::error('Error obteniendo datos de ventas: ' . $e->getMessage());
+                // Continuamos con los valores por defecto
             }
 
             return view('admin.index', compact(

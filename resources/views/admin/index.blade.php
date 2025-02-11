@@ -1,510 +1,593 @@
 @extends('adminlte::page')
 
-@section('title', 'Admin Dashboard')
+@section('title', 'Panel Administrador')
 
 @section('content_header')
-    <h1>Panel Administrador - Vista General</h1>
-    <p>Resumen global de pedidos y ventas</p>
-    
-    {{-- Filtros Globales --}}
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <form method="GET" action="{{ route('admin.index') }}" class="form-inline">
-                <div class="input-group mr-2">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                    </div>
-                    <select name="year" class="form-control" onchange="this.form.submit()">
-                        @foreach ($salesData['years'] as $year)
-                            <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                    </div>
-                    <select name="month" class="form-control" onchange="this.form.submit()">
-                        <option value="">Todos los meses</option>
-                        @foreach(range(1, 12) as $month)
-                            <option value="{{ $month }}" {{ $selectedMonth == $month ? 'selected' : '' }}>
-                                {{ DateTime::createFromFormat('!m', $month)->format('F') }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </form>
-        </div>
+<div class="dashboard-header mb-4">
+    <h1 class="font-weight-bold">Panel Administrador</h1>
+    <div class="date-filter d-flex align-items-center mt-3">
+        <form action="{{ route('admin.index') }}" method="GET" class="d-flex">
+            <select name="year" class="custom-select mr-2" style="width: auto;" onchange="this.form.submit()">
+                @foreach($salesData['years'] as $year)
+                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                        {{ $year }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="month" class="custom-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Todos los meses</option>
+                @foreach(range(1, 12) as $month)
+                    <option value="{{ $month }}" {{ $selectedMonth == $month ? 'selected' : '' }}>
+                        {{ \Carbon\Carbon::create()->month($month)->format('F') }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
     </div>
-
-    @if (session('error'))
-        <div class="alert {{ session('tipo') }} alert-dismissible fade show" role="alert">
-            <strong>{{ session('error') }}</strong> {{ session('mensaje') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
+</div>
 @stop
 
 @section('content')
-    <style>
-        .related-cards {
-            background-color: #6699cc;
-            /* Cambia este color según tus preferencias */
-        }
-    </style>
-    <div class="row related-cards">
-        <!-- Espacio para tarjetas relacionadas -->
-    </div>
-
-    {{-- Resumen de Ventas --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-chart-line"></i> Resumen General de Ventas</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
+<div class="row">
+    {{-- Resumen General de Ventas (Ancho completo) --}}
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#resumenVentas">
+                <div class="header-container">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-chart-line mr-2"></i>Resumen General de Ventas
+                    </h3>
+                    <i class="fas fa-chevron-down collapsed"></i>
+                </div>
+            </div>
+            <div class="collapse" id="resumenVentas">
+                <div class="card-body">
+                    <canvas id="salesChart" style="min-height: 250px;"></canvas>
+                </div>
             </div>
         </div>
-        <div class="card-body" style="display: none;">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Ventas Totales Anuales</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="salesChart"></canvas>
-                        </div>
+    </div>
+
+    {{-- Ventas por Usuario y Ubicación (Dos columnas) --}}
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#ventasUsuario">
+                <div class="header-container">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-users mr-2"></i>Ventas por Usuario
+                    </h3>
+                    <i class="fas fa-chevron-down collapsed"></i>
+                </div>
+            </div>
+            <div class="collapse" id="ventasUsuario">
+                <div class="card-body">
+                    <canvas id="userSalesChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#ventasUbicacion">
+                <div class="header-container">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Ventas por Ubicación
+                    </h3>
+                    <i class="fas fa-chevron-down collapsed"></i>
+                </div>
+            </div>
+            <div class="collapse" id="ventasUbicacion">
+                <div class="card-body" style="height: 300px; padding: 0;">
+                    <div style="width: 100%; height: 100%;">
+                        <canvas id="locationChart"></canvas>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Ventas Totales Mensuales ({{ $selectedYear }})</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="monthlySalesChart"></canvas>
-                        </div>
-                    </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Puntuaciones y Últimos Pedidos (Dos columnas) --}}
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#puntuacionesUsuario">
+                <div class="header-container">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-star mr-2"></i>Puntuaciones por Usuario
+                    </h3>
+                    <i class="fas fa-chevron-down collapsed"></i>
+                </div>
+            </div>
+            <div class="collapse" id="puntuacionesUsuario">
+                <div class="card-body">
+                    <canvas id="ratingChart" style="height: 400px;"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Ventas por Usuario --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-users"></i> Ventas por Usuario</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body" style="display: none;">
-            {{-- Se elimina el formulario de mes duplicado, usa el filtro global --}}
-            <canvas id="userSalesChart"></canvas>
-        </div>
-    </div>
-
-    {{-- Ventas por Lugar --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-map-marker-alt"></i> Ventas por Ubicación</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body" style="display: none;">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Lugar</th>
-                                    <th>Cantidad Vendida</th>
-                                    <th>Total Ventas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($ventasPorLugar as $venta)
-                                    <tr>
-                                        <td>{{ $venta->lugar }}</td>
-                                        <td>{{ $venta->cantidad_vendida }}</td>
-                                        <td>${{ number_format($venta->total_ventas, 2, ',', '.') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <canvas id="ventasLugarChart"></canvas>
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#ultimosPedidos">
+                <div class="header-container">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-shopping-cart mr-2"></i>Últimos Pedidos
+                    </h3>
+                    <i class="fas fa-chevron-down collapsed"></i>
                 </div>
             </div>
-        </div>
-    </div>
-
-    {{-- Últimos Pedidos --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-clock"></i> Últimos Pedidos</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body" style="display: none;">
-            <div class="table-responsive">
-                <table id="pedidosTable" class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pedidos as $pedido)
+            <div class="collapse" id="ultimosPedidos">
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover">
+                        <thead>
                             <tr>
-                                <td>{{ $pedido->fecha }}</td>
-                                <td>{{ $pedido->cliente }}</td>
-                                <td>${{ number_format($pedido->total, 2, ',', '.') }}</td>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- Filtros Generales --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-calendar"></i> Filtros Generales</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body" style="display: none;">
-            <form method="GET" action="{{ route('admin.index') }}">
-                <div class="form-group">
-                    <label for="year">Año:</label>
-                    <select name="year" id="year" class="form-control" onchange="this.form.submit()">
-                        @foreach ($salesData['years'] as $year)
-                            <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endforeach
-                    </select>
+                        </thead>
+                        <tbody>
+                            @foreach($pedidos as $pedido)
+                                <tr>
+                                    <td>#{{ $pedido->id }}</td>
+                                    <td>{{ $pedido->cliente }}</td>
+                                    <td>${{ number_format($pedido->total, 2) }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $pedido->estado == 'Completado' ? 'success' : 'warning' }}">
+                                            {{ $pedido->estado }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $pedido->fecha->format('d/m/Y H:i') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Modificar la sección de puntuaciones para hacerla colapsable --}}
-    <div class="card collapsed-card">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="fas fa-star mr-1"></i>
-                Puntuaciones por Usuario
-            </h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body" style="display: none;">
-            <div class="chart">
-                <canvas id="puntuacionesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
             </div>
         </div>
     </div>
-@stop
+</div>
 
-@section('css')
+@push('css')
 <style>
-    .card-header {
-        background-color: #f8f9fa;
+    .dashboard-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
     }
-    .card-header .card-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
+
     .card {
-        margin-bottom: 1rem;
-        box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        border: none;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: box-shadow 0.3s ease;
     }
-    .input-group-text {
-        background-color: #f8f9fa;
-        border-right: none;
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     }
-    select.form-control {
-        border-left: none;
+
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid rgba(0,0,0,.125);
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 60px;
+        cursor: pointer;
     }
-    .form-inline {
+
+    .card-header .card-title {
+        margin: 0;
+        color: #5a5c69;
+        font-size: 1rem;
+        font-weight: 700;
+        flex: 1;
+        padding-right: 20px;
+    }
+
+    .card-header .fa-chevron-down {
+        transition: transform 0.3s ease;
+        width: 20px;
+        text-align: center;
+        position: relative;
+        right: 0;
+    }
+
+    .card-header.collapsed .fa-chevron-down,
+    .card-header .collapsed.fa-chevron-down {
+        transform: rotate(-90deg);
+    }
+
+    .card-header:hover {
+        background-color: rgba(0,0,0,.03);
+    }
+
+    .card-title {
+        margin: 0;
+        color: #5a5c69;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .table td, .table th {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+    }
+
+    .custom-select {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+    }
+
+    .custom-select option {
+        color: #333;
+    }
+
+    .fa-chevron-down {
+        transition: transform 0.3s ease;
+    }
+
+    .collapsed .fa-chevron-down {
+        transform: rotate(-90deg);
+    }
+
+    .header-container {
         width: 100%;
-    }
-    .input-group {
-        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 </style>
-@stop
+@endpush
 
-@section('js')
-    @include('atajos')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Establecer valores por defecto al cargar la página
-            if (!window.location.search) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = now.getMonth() + 1;
-                
-                // Establecer valores en los selectores
-                $('select[name="year"]').val(year);
-                $('select[name="month"]').val(month);
-                
-                // Enviar el formulario con los valores por defecto
-                $('select[name="year"]').closest('form').submit();
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de Resumen General de Ventas
+    const salesChart = new Chart(document.getElementById('salesChart'), {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($salesDataMonthly['months']) !!},
+            datasets: [{
+                label: 'Ventas Mensuales',
+                data: {!! json_encode($salesDataMonthly['totals']) !!},
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#4e73df',
+                pointHoverBorderColor: '#fff',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    bodyColor: '#858796',
+                    titleMarginBottom: 10,
+                    titleColor: '#6e707e',
+                    titleFont: {
+                        size: 14
+                    },
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    padding: 15,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ventas: $' + context.parsed.y.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        borderDash: [2],
+                        drawBorder: false,
+                        zeroLineColor: '#dddfeb',
+                        zeroLineBorderDash: [2],
+                        zeroLineBorderDashOffset: [2]
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    }
+                }
             }
+        }
+    });
 
-            $('#pedidosTable').DataTable({
-                "order": [[0, "desc"]],
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json"
-                }
-            });
-
-            // Datos para el gráfico
-            var salesData = @json($salesData);
-
-            var ctx = document.getElementById('salesChart').getContext('2d');
-            var salesChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: salesData.years,
-                    datasets: [{
-                        label: 'Total de Ventas',
-                        data: salesData.totals,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+    // Gráfico de Ventas por Usuario
+    const userSalesChart = new Chart(document.getElementById('userSalesChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($userSalesData['users']) !!},
+            datasets: [{
+                label: 'Monto Total ($)',
+                data: {!! json_encode($userSalesData['totals']) !!},
+                backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                yAxisID: 'y',
+                order: 1
+            }, {
+                label: 'Cantidad Vendida',
+                data: {!! json_encode($userSalesData['quantities']) !!},
+                backgroundColor: 'rgba(28, 200, 138, 0.8)',
+                borderColor: 'rgba(28, 200, 138, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                yAxisID: 'y1',
+                order: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 11
                         }
                     }
-                }
-            });
-
-            // Datos para el gráfico de ventas por mes
-            var monthlySalesData = @json($salesDataMonthly);
-
-            var ctxMonthly = document.getElementById('monthlySalesChart').getContext('2d');
-            var monthlySalesChart = new Chart(ctxMonthly, {
-                type: 'bar',
-                data: {
-                    labels: monthlySalesData.months,
-                    datasets: [{
-                        label: 'Total de Ventas',
-                        data: monthlySalesData.totals,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    }]
                 },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Datos para el gráfico de ventas por usuario
-            var userSalesData = @json($userSalesData);
-
-            var ctxUser = document.getElementById('userSalesChart').getContext('2d');
-            var userSalesChart = new Chart(ctxUser, {
-                type: 'bar',
-                data: {
-                    labels: userSalesData.users,
-                    datasets: [{
-                        label: 'Total de Ventas',
-                        data: userSalesData.totals,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
-                                }
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#5a5c69',
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyColor: '#858796',
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label === 'Monto Total ($)') {
+                                return `Ventas: $${context.parsed.x.toFixed(2)}`;
+                            } else {
+                                return `Cantidad: ${context.parsed.x} unidades`;
                             }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    position: 'top',
+                    grid: {
+                        borderDash: [2],
+                        drawBorder: false
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        padding: 10,
+                        font: {
+                            weight: '500'
+                        }
+                    }
+                }
+            },
+            x1: {
+                beginAtZero: true,
+                position: 'bottom',
+                grid: {
+                    drawOnChartArea: false
+                },
+                ticks: {
+                    callback: function(value) {
+                        return value + ' uds.';
+                    }
+                }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 10
+            }
+        }
+    });
+
+    // Gráfico de Ventas por Ubicación
+    const locationChart = new Chart(document.getElementById('locationChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($ventasPorLugar->pluck('lugar')->toArray()) !!},
+            datasets: [{
+                data: {!! json_encode($ventasPorLugar->pluck('total_ventas')->toArray()) !!},
+                backgroundColor: [
+                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(28, 200, 138, 0.8)',
+                    'rgba(54, 185, 204, 0.8)',
+                    'rgba(246, 194, 62, 0.8)',
+                    'rgba(231, 74, 59, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.parsed;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value * 100) / total).toFixed(1);
+                            return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 0,
+                    right: 20,
+                    top: 0,
+                    bottom: 0
+                }
+            },
+            cutout: '50%'
+        }
+    });
+
+    // Gráfico de Puntuaciones por Usuario
+    const ratingChart = new Chart(document.getElementById('ratingChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($datosGraficoPuntuaciones['usuarios']) !!},
+            datasets: [{
+                label: 'Promedio de Estrellas',
+                data: {!! json_encode($datosGraficoPuntuaciones['promedios']) !!},
+                backgroundColor: 'rgba(246, 194, 62, 0.8)',
+                borderColor: 'rgba(246, 194, 62, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+                yAxisID: 'y'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.x.toFixed(1)} ⭐ de 5 estrellas`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            return '⭐'.repeat(value);
                         }
                     },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Ventas por Usuario ' + 
-                                  (@json($selectedMonth) ? 
-                                   '- ' + new Date(2000, @json($selectedMonth) - 1).toLocaleString('default', { month: 'long' }) : 
-                                   '(Todos los meses)') + 
-                                  ' ' + @json($selectedYear)
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Ventas: $' + context.raw.toFixed(2);
-                                }
-                            }
+                    title: {
+                        display: true,
+                        text: 'Calificación (estrellas)',
+                        font: {
+                            weight: 'bold'
                         }
                     }
-                }
-            });
-
-            // Datos para el gráfico de ventas por lugar
-            var ventasLugarData = @json($ventasPorLugar);
-            
-            var ctxLugar = document.getElementById('ventasLugarChart').getContext('2d');
-            new Chart(ctxLugar, {
-                type: 'bar',
-                data: {
-                    labels: ventasLugarData.map(item => item.lugar),
-                    datasets: [
-                        {
-                            label: 'Cantidad Vendida',
-                            data: ventasLugarData.map(item => item.cantidad_vendida),
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Total Ventas ($)',
-                            data: ventasLugarData.map(item => item.total_ventas),
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y1'
-                        }
-                    ]
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            position: 'left',
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad Vendida'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            position: 'right',
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Total Ventas ($)'
-                            }
+                y: {
+                    ticks: {
+                        font: {
+                            weight: 'bold'
                         }
                     }
                 }
-            });
+            }
+        }
+    });
 
-            // Gráfico de Puntuaciones
-            var puntuacionesCtx = document.getElementById('puntuacionesChart').getContext('2d');
-            new Chart(puntuacionesCtx, {
-                type: 'bar',
-                data: {
-                    labels: @json($datosGraficoPuntuaciones['usuarios']),
-                    datasets: [
-                        {
-                            label: 'Promedio de Calificación',
-                            data: @json($datosGraficoPuntuaciones['promedios']),
-                            backgroundColor: 'rgba(255, 215, 0, 0.5)',
-                            borderColor: 'rgba(255, 215, 0, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y-axis-1'
-                        },
-                        {
-                            label: 'Total Calificaciones',
-                            data: @json($datosGraficoPuntuaciones['totales']),
-                            type: 'line',
-                            fill: false,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            yAxisID: 'y-axis-2'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    scales: {
-                        yAxes: [
-                            {
-                                id: 'y-axis-1',
-                                type: 'linear',
-                                position: 'left',
-                                ticks: {
-                                    max: 5,
-                                    min: 0
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Promedio'
-                                }
-                            },
-                            {
-                                id: 'y-axis-2',
-                                type: 'linear',
-                                position: 'right',
-                                ticks: {
-                                    min: 0
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Total Calificaciones'
-                                }
-                            }
-                        ]
-                    },
-                    tooltips: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                }
-            });
+    // Asegurarse que todos los paneles estén colapsados al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener todos los botones de colapso
+        const collapseButtons = document.querySelectorAll('[data-toggle="collapse"]');
+        
+        // Agregar clase collapsed a todos los botones
+        collapseButtons.forEach(button => {
+            button.classList.add('collapsed');
+            const icon = button.querySelector('.fa-chevron-down');
+            if (icon) {
+                icon.style.transform = 'rotate(-90deg)';
+            }
         });
-    </script>
+
+        // Remover clase show de todos los paneles colapsables
+        const collapsePanels = document.querySelectorAll('.collapse');
+        collapsePanels.forEach(panel => {
+            panel.classList.remove('show');
+        });
+    });
+
+    // Manejar la rotación del icono al expandir/colapsar
+    $('.collapse').on('show.bs.collapse', function() {
+        const icon = $(this).siblings('.card-header').find('.fa-chevron-down');
+        icon.css('transform', 'rotate(0deg)');
+    }).on('hide.bs.collapse', function() {
+        const icon = $(this).siblings('.card-header').find('.fa-chevron-down');
+        icon.css('transform', 'rotate(-90deg)');
+    });
+</script>
+@endpush
 @stop
