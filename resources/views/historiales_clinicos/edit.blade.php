@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Editar Historial Clínico')
+@section('title', 'EDITAR HISTORIAL CLÍNICO')
 
 @section('content_header')
-    <h1 class="mb-3">Editar Historial Clínico</h1>
+    <h1>EDITAR HISTORIAL CLÍNICO</h1>
 @stop
 
 @section('content')
@@ -42,102 +42,90 @@
             @csrf
             @method('PUT')
 
-            {{-- FECHA DE REGISTRO --}}
-            <div class="card mb-4">
-                <div class="card-header" data-toggle="collapse" data-target="#fechaRegistro" style="cursor: pointer">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar-alt mr-2"></i> Fecha de Registro
-                    </h5>
+            {{-- Fecha de Registro --}}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-calendar"></i> FECHA DE REGISTRO</h3>
                 </div>
-                <div id="fechaRegistro" class="collapse show">
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="fecha">Fecha <span class="text-danger">*</span></label>
-                                <input type="date" name="fecha" id="fecha" class="form-control" 
-                                    value="{{ old('fecha', $historialClinico->fecha) }}" required>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="fecha">FECHA <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ $historialClinico->fecha }}" required>
                     </div>
                 </div>
             </div>
 
-            {{-- DATOS DEL PACIENTE --}}
-            <div class="card mb-4">
-                <div class="card-header" data-toggle="collapse" data-target="#datosPaciente" style="cursor: pointer">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user mr-2"></i> Datos del Paciente
-                    </h5>
+            {{-- Datos del Paciente --}}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-user"></i> DATOS DEL PACIENTE</h3>
                 </div>
-                <div id="datosPaciente" class="collapse show">
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="nombres">Nombres <span class="text-danger">*</span></label>
-                                <input type="text" name="nombres" id="nombres" class="form-control" 
-                                    value="{{ old('nombres', $historialClinico->nombres) }}" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="apellidos">Apellidos <span class="text-danger">*</span></label>
-                                <input type="text" name="apellidos" id="apellidos" class="form-control" 
-                                    value="{{ old('apellidos', $historialClinico->apellidos) }}" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="cedula">Cédula</label>
-                                <input type="text" name="cedula" id="cedula" class="form-control" 
-                                    value="{{ old('cedula', $historialClinico->cedula) }}">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="edad">Edad <span class="text-danger">*</span></label>
-                                <input type="number" name="edad" id="edad" class="form-control" 
-                                    value="{{ old('edad', $historialClinico->edad) }}" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" 
-                                    value="{{ old('fecha_nacimiento', $historialClinico->fecha_nacimiento) }}">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="celular">Celular <span class="text-danger">*</span></label>
-                                <input type="text" name="celular" id="celular" class="form-control" 
-                                    value="{{ old('celular', $historialClinico->celular) }}" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="ocupacion">Ocupación <span class="text-danger">*</span></label>
-                                <input type="text" name="ocupacion" id="ocupacion" class="form-control" 
-                                    value="{{ old('ocupacion', $historialClinico->ocupacion) }}" required>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="nombres">NOMBRES <span class="text-danger">*</span></label>
+                                <input type="text" name="nombres" id="nombres" class="form-control" value="{{ $historialClinico->nombres }}" required>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="apellidos">APELLIDOS <span class="text-danger">*</span></label>
+                                <input type="text" name="apellidos" id="apellidos" class="form-control" value="{{ $historialClinico->apellidos }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="cedula">CÉDULA</label>
+                                <input type="text" name="cedula" id="cedula" class="form-control" value="{{ $historialClinico->cedula }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="edad">EDAD <span class="text-danger">*</span></label>
+                                <input type="number" name="edad" id="edad" class="form-control" value="{{ $historialClinico->edad }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="fecha_nacimiento">FECHA DE NACIMIENTO</label>
+                                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" value="{{ $historialClinico->fecha_nacimiento }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="celular">CELULAR <span class="text-danger">*</span></label>
+                                <input type="text" name="celular" id="celular" class="form-control" value="{{ $historialClinico->celular }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ocupacion">OCUPACIÓN <span class="text-danger">*</span></label>
+                        <input type="text" name="ocupacion" id="ocupacion" class="form-control" value="{{ $historialClinico->ocupacion }}" required>
                     </div>
                 </div>
             </div>
 
-            {{-- MOTIVO DE CONSULTA Y ENFERMEDAD ACTUAL --}}
-            <div class="card mb-4">
-                <div class="card-header" data-toggle="collapse" data-target="#motivoConsulta">
-                    <h5 class="mb-0">
-                        <i class="fas fa-notes-medical mr-2"></i> Motivo de Consulta y Enfermedad Actual
-                    </h5>
+            {{-- Motivo de Consulta y Enfermedad Actual --}}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-notes-medical"></i> MOTIVO DE CONSULTA Y ENFERMEDAD ACTUAL</h3>
                 </div>
-                <div id="motivoConsulta" class="collapse show">
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label>Motivo de Consulta <span class="text-danger">*</span></label>
-                                <input type="text" name="motivo_consulta" class="form-control" 
-                                    value="{{ old('motivo_consulta', $historialClinico->motivo_consulta) }}" required>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label>Enfermedad Actual <span class="text-danger">*</span></label>
-                                <input type="text" name="enfermedad_actual" class="form-control" 
-                                    value="{{ old('enfermedad_actual', $historialClinico->enfermedad_actual) }}" required>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="motivo_consulta">MOTIVO DE CONSULTA <span class="text-danger">*</span></label>
+                        <input type="text" name="motivo_consulta" id="motivo_consulta" class="form-control" value="{{ $historialClinico->motivo_consulta }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="enfermedad_actual">ENFERMEDAD ACTUAL <span class="text-danger">*</span></label>
+                        <textarea name="enfermedad_actual" id="enfermedad_actual" class="form-control" rows="3" required>{{ $historialClinico->enfermedad_actual }}</textarea>
                     </div>
                 </div>
             </div>
 
-            {{-- ANTECEDENTES --}}
+            {{-- Antecedentes --}}
             <div class="card mb-4">
                 <div class="card-header" data-toggle="collapse" data-target="#antecedentes">
                     <h5 class="mb-0">
@@ -168,7 +156,7 @@
                 </div>
             </div>
 
-            {{-- AGUDEZA VISUAL Y PH --}}
+            {{-- Agudeza Visual y PH --}}
             <div class="card mb-4">
                 <div class="card-header" data-toggle="collapse" data-target="#agudezaVisual">
                     <h5 class="mb-0">
@@ -246,7 +234,7 @@
                 </div>
             </div>
 
-            {{-- LENSOMETRÍA --}}
+            {{-- Lensometría --}}
             <div class="card mb-4">
                 <div class="card-header" data-toggle="collapse" data-target="#lensometria">
                     <h5 class="mb-0">
@@ -306,7 +294,7 @@
                 </div>
             </div>
 
-            {{-- RX FINAL --}}
+            {{-- Rx Final --}}
             <div class="card mb-4">
                 <div class="card-header" data-toggle="collapse" data-target="#rxFinal">
                     <h5 class="mb-0">
@@ -370,7 +358,7 @@
                 </div>
             </div>
 
-            {{-- DIAGNÓSTICO, TRATAMIENTO Y COTIZACIÓN --}}
+            {{-- Diagnóstico, Tratamiento y Cotización --}}
             <div class="card mb-4">
                 <div class="card-header" data-toggle="collapse" data-target="#diagnostico">
                     <h5 class="mb-0">
@@ -399,13 +387,13 @@
                 </div>
             </div>
 
-            {{-- BOTONES DE ACCIÓN --}}
-            <div class="d-flex justify-content-end">
-                <a href="{{ route('historiales_clinicos.index') }}" class="btn btn-secondary mr-2">
-                    Cancelar
+            {{-- Botones de Acción --}}
+            <div class="text-right">
+                <a href="{{ route('historiales_clinicos.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> CANCELAR
                 </a>
                 <button type="submit" class="btn btn-primary">
-                    Actualizar
+                    <i class="fas fa-save"></i> GUARDAR CAMBIOS
                 </button>
             </div>
         </form>
@@ -415,16 +403,34 @@
 
 @section('css')
 <style>
+    /* Convertir todo el texto a mayúsculas */
+    .card-title,
+    .card-header,
+    label,
+    input,
+    textarea,
+    select,
+    .btn,
+    h1, h2, h3,
+    .form-control {
+        text-transform: uppercase !important;
+    }
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
     .card-header {
         background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
+        border-bottom: 1px solid #e9ecef;
     }
-    .card-header:hover {
-        background-color: #e9ecef;
+
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
     }
-    .form-group label {
-        font-weight: 600;
-    }
+
     .text-danger {
         font-weight: bold;
     }
@@ -434,12 +440,23 @@
 @section('js')
 <script>
     $(document).ready(function() {
-        // Inicializar todos los collapse
-        $('.collapse').collapse('show');
-        
-        // Toggle de iconos en los headers
-        $('.card-header').click(function() {
-            $(this).find('i').toggleClass('fa-minus fa-plus');
+        // Convertir input a mayúsculas mientras se escribe
+        $('input[type="text"], textarea').on('input', function() {
+            $(this).val($(this).val().toUpperCase());
+        });
+
+        // Actualizar edad automáticamente cuando cambia la fecha de nacimiento
+        $('#fecha_nacimiento').on('change', function() {
+            let fechaNacimiento = new Date($(this).val());
+            let hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+            let mes = hoy.getMonth() - fechaNacimiento.getMonth();
+            
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+                edad--;
+            }
+            
+            $('#edad').val(edad);
         });
     });
 </script>

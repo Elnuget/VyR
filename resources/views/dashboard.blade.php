@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Dashboard')
+@section('title', 'DASHBOARD')
 
 @section('content_header')
-    <h1 class="text-primary"><i class="fas fa-home"></i> Bienvenido al Sistema de Gestión ÓPTICA</h1>
+    <h1 class="text-primary"><i class="fas fa-home"></i> BIENVENIDO AL SISTEMA DE GESTIÓN ÓPTICA</h1>
 @stop
 
 @section('content')
@@ -12,32 +12,32 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-primary">
-                    <h3 class="card-title"><i class="fas fa-star"></i> Accesos Directos</h3>
+                    <h3 class="card-title"><i class="fas fa-star"></i> ACCESOS DIRECTOS</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 col-sm-6 mb-3">
                             <a href="{{ route('pedidos.index') }}" class="btn btn-lg btn-primary btn-block">
                                 <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>
-                                Pedidos
+                                PEDIDOS
                             </a>
                         </div>
                         <div class="col-md-3 col-sm-6 mb-3">
                             <a href="{{ route('inventario.index') }}" class="btn btn-lg btn-success btn-block">
                                 <i class="fas fa-boxes fa-2x mb-2"></i><br>
-                                Inventario
+                                INVENTARIO
                             </a>
                         </div>
                         <div class="col-md-3 col-sm-6 mb-3">
                             <a href="{{ route('pagos.index') }}" class="btn btn-lg btn-info btn-block">
                                 <i class="fas fa-money-bill fa-2x mb-2"></i><br>
-                                Pagos
+                                PAGOS
                             </a>
                         </div>
                         <div class="col-md-3 col-sm-6 mb-3">
                             <a href="{{ route('historiales_clinicos.index') }}" class="btn btn-lg btn-warning btn-block">
                                 <i class="fas fa-notes-medical fa-2x mb-2"></i><br>
-                                Historiales Clínicos
+                                HISTORIALES CLÍNICOS
                             </a>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
             <div class="card">
                 <div class="card-header bg-info">
                     <h3 class="card-title">
-                        <i class="fas fa-chart-line mr-2"></i>Resumen General de Ventas
+                        <i class="fas fa-chart-line mr-2"></i>RESUMEN GENERAL DE VENTAS
                     </h3>
                 </div>
                 <div class="card-body">
@@ -61,7 +61,7 @@
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">No hay datos de ventas disponibles para mostrar</p>
+                            <p class="text-muted">NO HAY DATOS DE VENTAS DISPONIBLES PARA MOSTRAR</p>
                         </div>
                     @endif
                 </div>
@@ -80,39 +80,37 @@
 
             @if($lastCashHistory && $lastCashHistory->estado !== 'Apertura')
                 <div class="alert alert-warning mb-4">
-                    <i class="fas fa-exclamation-triangle"></i> Advertencia: Debes abrir la caja antes de continuar.
+                    <i class="fas fa-exclamation-triangle"></i> ADVERTENCIA: DEBES ABRIR LA CAJA ANTES DE CONTINUAR.
                     <a href="{{ route('cash-histories.index') }}" class="btn btn-primary ml-3">
-                        <i class="fas fa-cash-register"></i> Abrir Caja
+                        <i class="fas fa-cash-register"></i> ABRIR CAJA
                     </a>
                 </div>
             @endif
 
             <div class="card">
-                <div class="card-header bg-secondary">
-                    <h3 class="card-title"><i class="fas fa-cash-register"></i> Historial de Caja</h3>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-history mr-2"></i>HISTORIAL DE CAJA
+                    </h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Monto</th>
-                                    <th>Estado</th>
-                                    <th>Usuario</th>
+                                    <th>FECHA</th>
+                                    <th>MONTO</th>
+                                    <th>ESTADO</th>
+                                    <th>USUARIO</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($cashHistories as $item)
+                                @foreach($cashHistories->take(5) as $history)
                                     <tr>
-                                        <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
-                                        <td>${{ number_format($item->monto, 2) }}</td>
-                                        <td>
-                                            <span class="badge badge-{{ $item->estado === 'Apertura' ? 'success' : 'danger' }}">
-                                                {{ $item->estado }}
-                                            </span>
-                                        </td>
-                                        <td>{{ $item->user->name ?? 'N/A' }}</td>
+                                        <td>{{ $history->created_at->format('d/m/Y H:i') }}</td>
+                                        <td>${{ number_format($history->monto, 2) }}</td>
+                                        <td>{{ strtoupper($history->estado) }}</td>
+                                        <td>{{ strtoupper($history->user->name) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -126,6 +124,17 @@
 
 @section('css')
     <style>
+        /* Convertir todo el texto a mayúsculas */
+        .card-title,
+        .btn,
+        .table th,
+        .table td,
+        .text-muted,
+        h1, h2, h3,
+        .alert,
+        p {
+            text-transform: uppercase !important;
+        }
         .btn-lg {
             padding: 20px;
             font-size: 1.1rem;
