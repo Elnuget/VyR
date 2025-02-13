@@ -8,12 +8,12 @@
         <h1>CUMPLEAÑOS DEL DÍA</h1>
     </div>
     <div class="col-sm-6">
-        <h3 class="text-right text-muted">{{ $fecha_actual }}</h3>
+        <h3 class="text-right text-muted">{{ strtoupper($fecha_actual) }}</h3>
     </div>
 </div>
 @if (session('error'))
 <div class="alert {{ session('tipo', 'alert-danger') }} alert-dismissible fade show" role="alert">
-    <strong>{{ session('error') }}</strong>
+    <strong>{{ strtoupper(session('error')) }}</strong>
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>

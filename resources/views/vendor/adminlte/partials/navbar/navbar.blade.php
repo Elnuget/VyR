@@ -28,7 +28,7 @@
                     <button type="submit" class="btn btn-outline-danger nav-link d-flex align-items-center" 
                             style="border-radius: 20px; padding: 8px 20px; transition: all 0.3s ease;">
                         <i class="fas fa-cash-register mr-2" style="font-size: 1.1em;"></i>
-                        <span style="font-weight: 500;">Cerrar Caja</span>
+                        <span style="font-weight: 500;">CERRAR CAJA</span>
                     </button>
                 </form>
             </li>
@@ -52,6 +52,7 @@
         border: 2px solid #dc3545;
         background-color: transparent;
         color: #dc3545;
+        text-transform: uppercase;
     }
 
     .btn-outline-danger:hover {
