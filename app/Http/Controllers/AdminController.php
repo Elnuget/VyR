@@ -52,6 +52,16 @@ class AdminController extends Controller
                 'total_ventas' => 0
             ]]);
 
+            // Obtener pedidos calificados
+            $pedidosCalificados = Pedido::whereNotNull('calificacion')
+                ->select('id', 'cliente', 'usuario', 'calificacion', 'comentario_calificacion')
+                ->whereYear('fecha', $selectedYear)
+                ->when($selectedMonth, function($query) use ($selectedMonth) {
+                    return $query->whereMonth('fecha', $selectedMonth);
+                })
+                ->orderBy('fecha', 'desc')
+                ->get();
+
             try {
                 // Obtener datos de ventas por usuario incluyendo cantidades
                 $users = DB::table('pedidos')
@@ -106,7 +116,8 @@ class AdminController extends Controller
                 'selectedYear',
                 'selectedMonth',
                 'ventasPorLugar',
-                'datosGraficoPuntuaciones'
+                'datosGraficoPuntuaciones',
+                'pedidosCalificados'
             ));
 
         } catch (\Exception $e) {

@@ -170,6 +170,51 @@
     </div>
 </div>
 
+{{-- Calificaciones de Pedidos --}}
+<div class="col-12">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header border-0 bg-transparent" data-toggle="collapse" data-target="#calificacionesPedidos">
+            <div class="header-container">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-star mr-2"></i>Calificaciones de Pedidos
+                </h3>
+                <i class="fas fa-chevron-down collapsed"></i>
+            </div>
+        </div>
+        <div class="collapse" id="calificacionesPedidos">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Cliente</th>
+                            <th>Usuario</th>
+                            <th>Calificación</th>
+                            <th>Comentario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pedidosCalificados as $pedido)
+                            <tr>
+                                <td>#{{ $pedido->id }}</td>
+                                <td>{{ $pedido->cliente }}</td>
+                                <td>{{ $pedido->usuario }}</td>
+                                <td>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= $pedido->calificacion ? 'text-warning' : 'text-secondary' }}"></i>
+                                    @endfor
+                                    ({{ $pedido->calificacion }}/5)
+                                </td>
+                                <td>{{ $pedido->comentario_calificacion ?? 'Sin comentario' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('css')
 <style>
     .dashboard-header {
