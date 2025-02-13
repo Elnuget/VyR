@@ -23,7 +23,7 @@
         @endphp
         
         @if($lastCashHistory)
-            <li class="nav-item">
+            <li class="nav-item d-none d-md-block">
                 <div class="alert alert-danger py-1 px-3 mb-0 ml-3 d-flex align-items-center" style="font-size: 0.9rem;">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
                     El usuario {{ $lastCashHistory->user->name }} debe cerrar caja antes de salir
