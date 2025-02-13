@@ -63,24 +63,18 @@
         <div class="card-body">
             <!-- Filtros -->
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>LUGAR</label>
                         <select class="form-control" id="filtroCategoria">
                             <option value="">TODOS LOS LUGARES</option>
-                            <option value="CAJÓN DE ARMAZONES">CAJÓN DE ARMAZONES</option>
-                            <option value="COSAS EXTRAS">COSAS EXTRAS</option>
-                            <option value="ESTUCHES">ESTUCHES</option>
-                            <option value="GOTERO">GOTERO</option>
-                            <option value="GOTEROS">GOTEROS</option>
-                            <option value="LÍQUIDOS">LÍQUIDOS</option>
-                            <option value="PROPIO">PROPIO</option>
-                            <option value="SOPORTE 1">SOPORTE 1</option>
-                            <option value="SOPORTE 2">SOPORTE 2</option>
+                            @foreach($inventario->pluck('lugar')->unique() as $lugar)
+                                <option value="{{ $lugar }}">{{ $lugar }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>ESTADO DE STOCK</label>
                         <select class="form-control" id="filtroStock">
@@ -90,7 +84,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>MOVIMIENTOS</label>
                         <select class="form-control" id="filtroMovimientos">
@@ -98,6 +92,12 @@
                             <option value="VENDIDO">VENDIDO</option>
                             <option value="EN STOCK">EN STOCK</option>
                         </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>MES</label>
+                        <input type="month" class="form-control" id="filtroMes">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -150,7 +150,7 @@
 
             <!-- Tabla de Inventario -->
             <div class="table-responsive">
-                <table class="table table-striped table-bordered">
+                <table id="tablaInventario" class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th>CÓDIGO</th>
@@ -165,48 +165,12 @@
                         <tr>
                             <td>{{ $item->codigo }}</td>
                             <td>{{ $item->lugar }}</td>
-                            <td>
+                            <td data-stock="{{ $item->cantidad }}">
                                 <span class="badge {{ $item->cantidad > 0 ? 'bg-success' : 'bg-danger' }}">
                                     {{ $item->cantidad }}
                                 </span>
                             </td>
-                            <td>
-                                @if($item->pedidos->count() > 0)
-                                    <div class="timeline-item">
-                                        <div class="movimientos-recientes">
-                                            @foreach($item->pedidos->sortByDesc('fecha')->take(3) as $pedido)
-                                                <div class="timeline-content">
-                                                    <i class="fas fa-arrow-right text-primary"></i>
-                                                    Orden #{{ $pedido->numero_orden }} - 
-                                                    {{ \Carbon\Carbon::parse($pedido->fecha)->format('d/m/Y') }} -
-                                                    Cliente: {{ $pedido->cliente }}
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                        
-                                        @if($item->pedidos->count() > 3)
-                                            <div class="movimientos-completos d-none">
-                                                @foreach($item->pedidos->sortByDesc('fecha')->slice(3) as $pedido)
-                                                    <div class="timeline-content">
-                                                        <i class="fas fa-arrow-right text-primary"></i>
-                                                        Orden #{{ $pedido->numero_orden }} - 
-                                                        {{ \Carbon\Carbon::parse($pedido->fecha)->format('d/m/Y') }} -
-                                                        Cliente: {{ $pedido->cliente }}
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                            <div class="text-center mt-2">
-                                                <button class="btn btn-sm btn-link toggle-movimientos" data-showing="less">
-                                                    <span class="show-more">Ver {{ $item->pedidos->count() - 3 }} movimientos más</span>
-                                                    <span class="show-less d-none">Ver menos</span>
-                                                </button>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @else
-                                    <span class="text-muted">Sin movimientos</span>
-                                @endif
-                            </td>
+                            <td>{{ $item->pedidos->count() > 0 ? 'VENDIDO' : 'SIN MOVIMIENTOS' }}</td>
                             <td>{{ $item->updated_at->format('d/m/Y') }}</td>
                         </tr>
                         @endforeach
@@ -249,81 +213,120 @@
 @section('js')
 <script>
 $(document).ready(function() {
+    // Establecer el mes actual por defecto en el filtro
+    var today = new Date();
+    var mesActual = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+    $('#filtroMes').val(mesActual);
+
     // Inicializar DataTable
-    var tabla = $('#tablaHistorial').DataTable({
+    var tabla = $('#tablaInventario').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json"
         },
-        "order": [[4, "desc"]]
+        "order": [[4, "desc"]],
+        "pageLength": 25,
+        "responsive": true,
+        "initComplete": function(settings, json) {
+            // Aplicar el filtro del mes actual al cargar la página
+            aplicarFiltroMes(mesActual);
+        }
     });
 
-    // Actualizar contadores
-    function actualizarContadores() {
-        let filas = $('#tablaHistorial tbody tr:visible');
-        $('#totalArticulos').text(filas.length);
-        $('#totalStock').text(filas.filter(function() {
-            return parseInt($(this).find('td:eq(2)').text()) > 0;
-        }).length);
-        $('#sinStock').text(filas.filter(function() {
-            return parseInt($(this).find('td:eq(2)').text()) === 0;
-        }).length);
-        $('#totalVendidos').text(filas.filter(function() {
-            return $(this).find('td:eq(3)').text().trim() !== 'Sin movimientos';
-        }).length);
+    // Función para aplicar filtro de mes
+    function aplicarFiltroMes(fecha) {
+        if (fecha) {
+            let [año, mes] = fecha.split('-');
+            
+            // Limpiar filtros de búsqueda anteriores
+            $.fn.dataTable.ext.search = [];
+            
+            // Agregar nuevo filtro
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    let fechaMovimiento = data[4]; // Columna de último movimiento
+                    if (!fechaMovimiento) return false;
+                    
+                    let [dia, mesMovimiento, añoMovimiento] = fechaMovimiento.split('/');
+                    return (parseInt(mesMovimiento) === parseInt(mes) && 
+                            parseInt(añoMovimiento) === parseInt(año));
+                }
+            );
+        } else {
+            // Si no hay fecha, limpiar los filtros
+            $.fn.dataTable.ext.search = [];
+        }
+        tabla.draw();
+        actualizarContadores();
     }
 
-    // Filtros
-    $('#filtroCategoria, #filtroStock, #filtroMovimientos').on('change', function() {
-        tabla.draw();
+    // Función para actualizar contadores
+    function actualizarContadores() {
+        let totalArticulos = 0;
+        let totalStock = 0;
+        let totalVendidos = 0;
+        let sinStock = 0;
+
+        tabla.rows({search: 'applied'}).every(function() {
+            let data = this.data();
+            totalArticulos++;
+            
+            let stock = parseInt($(data[2]).text().trim());
+            if (stock > 0) {
+                totalStock++;
+            } else {
+                sinStock++;
+            }
+
+            if (data[3].includes('VENDIDO')) {
+                totalVendidos++;
+            }
+        });
+
+        $('#totalArticulos').text(totalArticulos);
+        $('#totalStock').text(totalStock);
+        $('#totalVendidos').text(totalVendidos);
+        $('#sinStock').text(sinStock);
+    }
+
+    // Filtro por categoría
+    $('#filtroCategoria').on('change', function() {
+        let valor = $(this).val();
+        tabla.column(1).search(valor).draw();
     });
 
-    // Búsqueda rápida
+    // Filtro por estado de stock
+    $('#filtroStock').on('change', function() {
+        let valor = $(this).val();
+        if (valor === 'EN STOCK') {
+            tabla.column(2).search('1', true, false).draw();
+        } else if (valor === 'SIN STOCK') {
+            tabla.column(2).search('0', true, false).draw();
+        } else {
+            tabla.column(2).search('').draw();
+        }
+    });
+
+    // Filtro por movimientos
+    $('#filtroMovimientos').on('change', function() {
+        let valor = $(this).val();
+        tabla.column(3).search(valor).draw();
+    });
+
+    // Filtro por mes
+    $('#filtroMes').on('change', function() {
+        aplicarFiltroMes($(this).val());
+    });
+
+    // Búsqueda general
     $('#filtroBusqueda').on('keyup', function() {
         tabla.search(this.value).draw();
     });
 
-    // Aplicar filtros personalizados
-    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-        let $row = $(tabla.row(dataIndex).node());
-        let lugarSeleccionado = $('#filtroCategoria').val();
-        let stock = $('#filtroStock').val();
-        let movimientos = $('#filtroMovimientos').val();
-        
-        let lugarActual = data[1]; // Índice 1 corresponde a la columna "Categoría/Lugar"
-        
-        let pasaLugar = !lugarSeleccionado || lugarActual === lugarSeleccionado;
-        let pasaStock = !stock || $row.data('stock') === stock;
-        let pasaMovimientos = !movimientos || $row.data('movimientos') === movimientos;
-        
-        return pasaLugar && pasaStock && pasaMovimientos;
-    });
-
-    // Actualizar contadores iniciales
-    actualizarContadores();
-
     // Actualizar contadores después de cada filtro
     tabla.on('draw', actualizarContadores);
 
-    // Manejar el botón de ver más/menos movimientos
-    $('.toggle-movimientos').on('click', function() {
-        const $btn = $(this);
-        const $row = $btn.closest('.timeline-item');
-        const $completos = $row.find('.movimientos-completos');
-        const $showMore = $btn.find('.show-more');
-        const $showLess = $btn.find('.show-less');
-        
-        if ($btn.data('showing') === 'less') {
-            $completos.removeClass('d-none');
-            $showMore.addClass('d-none');
-            $showLess.removeClass('d-none');
-            $btn.data('showing', 'more');
-        } else {
-            $completos.addClass('d-none');
-            $showMore.removeClass('d-none');
-            $showLess.addClass('d-none');
-            $btn.data('showing', 'less');
-        }
-    });
+    // Inicializar contadores
+    actualizarContadores();
 });
 </script>
 @stop
