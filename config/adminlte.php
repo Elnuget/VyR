@@ -324,6 +324,12 @@ return [
                     'route' => 'configuracion.mediosdepago.index',
                     'active' => ['Configuración/MediosDePago/*']
                 ],
+                [
+                    'text' => 'Empresas',
+                    'icon' => 'fas fa-building',
+                    'route' => 'empresas.index',
+                    'active' => ['empresas/*', 'empresas']
+                ],
             ],
         ],
 

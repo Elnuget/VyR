@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Caja;
 use App\Models\Pedido;
 use App\Models\Pago;
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class CajaController extends Controller
 {
@@ -49,10 +51,19 @@ class CajaController extends Controller
         ]);
 
         // Send email notification
-        Mail::raw("Se ha registrado un nuevo movimiento en caja.\nMotivo: {$caja->motivo}\nValor: {$caja->valor}", function ($message) {
-            $message->to('escleropticarg@gmail.com')
-                    ->subject('Nuevo Movimiento en Caja');
-        });
+        $mensaje = "Se ha registrado un nuevo movimiento en caja.\nMotivo: {$caja->motivo}\nValor: {$caja->valor}";
+        $empresas = Empresa::all();
+        
+        if($empresas->isNotEmpty()) {
+            foreach($empresas as $empresa) {
+                Mail::raw($mensaje, function ($message) use ($empresa) {
+                    $message->to($empresa->correo)
+                            ->subject('Nuevo Movimiento en Caja');
+                });
+            }
+        } else {
+            Log::info('No registered companies found to send email notifications for cash movement');
+        }
 
         return redirect()->back()->with('success', 'Movimiento registrado exitosamente');
     }
