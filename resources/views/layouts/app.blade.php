@@ -69,6 +69,12 @@
                 <p>Historiales Clínicos</p>
             </a>
         </li>
+        <li class="nav-item">
+            <a href="{{ route('mensajes.whatsapp') }}" class="nav-link">
+                <i class="nav-icon fas fa-comments"></i>
+                <p>MENSAJES WHATSAPP</p>
+            </a>
+        </li>
         <!-- ...existing menu items... -->
     </ul>
 

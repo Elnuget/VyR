@@ -299,11 +299,20 @@ return [
         ],
 
         [
-            'text' => 'Mensajes WhatsApp',
+            'text' => 'MENSAJES WHATSAPP',
             'icon' => 'fab fa-whatsapp',
-            'route' => 'historiales_clinicos.cumpleanos',
-            'label' => 'Cumpleaños',
-            'label_color' => 'success'
+            'submenu' => [
+                [
+                    'text' => 'MENSAJES CUMPLEAÑOS',
+                    'route' => 'historiales_clinicos.cumpleanos',
+                    'icon' => 'fas fa-birthday-cake',
+                ],
+                [
+                    'text' => 'MENSAJES PRÓXIMA CONSULTA',
+                    'route' => 'historiales_clinicos.proximas_consultas',
+                    'icon' => 'fas fa-calendar-check',
+                ],
+            ],
         ],
 
         [

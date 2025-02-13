@@ -1,14 +1,11 @@
 @extends('adminlte::page')
 
-@section('title', 'CUMPLEAÑOS')
+@section('title', 'CUMPLEAÑOS DEL MES')
 
 @section('content_header')
 <div class="row mb-2">
     <div class="col-sm-6">
-        <h1>CUMPLEAÑOS DEL DÍA</h1>
-    </div>
-    <div class="col-sm-6">
-        <h3 class="text-right text-muted">{{ strtoupper($fecha_actual) }}</h3>
+        <h1>CUMPLEAÑOS DEL MES DE {{ strtoupper($mes_actual) }}</h1>
     </div>
 </div>
 @if (session('error'))
@@ -23,36 +20,50 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header">
-        <h3 class="card-title">PACIENTES QUE CUMPLEN AÑOS HOY</h3>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">PACIENTES QUE CUMPLEN AÑOS ESTE MES</h3>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editarMensajeModal">
+            <i class="fas fa-edit"></i> EDITAR MENSAJE PREDETERMINADO
+        </button>
     </div>
     <div class="card-body">
         @if($cumpleaneros->isEmpty())
             <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> NO HAY PACIENTES QUE CUMPLAN AÑOS HOY.
+                <i class="fas fa-info-circle"></i> NO HAY CUMPLEAÑOS REGISTRADOS PARA ESTE MES.
             </div>
         @else
             <div class="table-responsive">
                 <table id="cumpleanosTable" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>DÍA</th>
                             <th>NOMBRES</th>
                             <th>APELLIDOS</th>
-                            <th>FECHA NACIMIENTO</th>
                             <th>EDAD</th>
                             <th>CELULAR</th>
                             <th>ÚLTIMA CONSULTA</th>
-                            <th>MOTIVO ÚLTIMA CONSULTA</th>
                             <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($cumpleaneros as $paciente)
                         <tr>
+                            <td>
+                                <span class="badge badge-primary" style="font-size: 1em;">
+                                    {{ $paciente['dia_cumpleanos'] }}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{ strtoupper($paciente['dia_nombre']) }}</small>
+                            </td>
                             <td>{{ strtoupper($paciente['nombres']) }}</td>
                             <td>{{ strtoupper($paciente['apellidos']) }}</td>
-                            <td>{{ $paciente['fecha_nacimiento'] }}</td>
-                            <td>{{ $paciente['edad'] }} AÑOS</td>
+                            <td>
+                                <span class="badge badge-info" style="font-size: 0.9em;">
+                                    CUMPLE {{ $paciente['edad_cumplir'] }}
+                                </span>
+                                <br>
+                                <small class="text-muted">(ACTUAL: {{ $paciente['edad_actual'] }})</small>
+                            </td>
                             <td>
                                 @if($paciente['celular'])
                                     <span class="badge badge-success">
@@ -63,22 +74,25 @@
                                 @endif
                             </td>
                             <td>{{ $paciente['ultima_consulta'] }}</td>
-                            <td>{{ strtoupper(Str::limit($paciente['motivo_consulta'], 50)) }}</td>
                             <td>
                                 <div class="btn-group">
                                     @if($paciente['celular'])
-                                        <a href="{{ route('historiales_clinicos.whatsapp', $paciente['id']) }}"
-                                            class="btn btn-success btn-sm" 
-                                            target="_blank"
-                                            title="ENVIAR MENSAJE DE CUMPLEAÑOS">
-                                            <i class="fab fa-whatsapp"></i> FELICITAR
-                                        </a>
+                                        @php
+                                            $mensajeEnviado = \App\Models\MensajesEnviados::where('historial_id', $paciente['id'])
+                                                ->where('tipo', 'cumpleanos')
+                                                ->whereDate('fecha_envio', today())
+                                                ->exists();
+                                        @endphp
+                                        
+                                        <button type="button" 
+                                            class="btn {{ $mensajeEnviado ? 'btn-secondary' : 'btn-success' }} btn-sm btn-enviar-mensaje"
+                                            data-paciente-id="{{ $paciente['id'] }}"
+                                            {{ $mensajeEnviado ? 'disabled' : '' }}
+                                            onclick="mostrarModalMensaje({{ $paciente['id'] }}, '{{ $paciente['nombres'] }}')">
+                                            <i class="fab fa-whatsapp"></i> 
+                                            {{ $mensajeEnviado ? 'MENSAJE ENVIADO' : 'ENVIAR FELICITACIÓN' }}
+                                        </button>
                                     @endif
-                                    <a href="{{ route('historiales_clinicos.edit', $paciente['id']) }}"
-                                        class="btn btn-info btn-sm"
-                                        title="VER HISTORIAL">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -89,51 +103,154 @@
         @endif
     </div>
 </div>
+
+<!-- Modal para editar mensaje predeterminado -->
+<div class="modal fade" id="editarMensajeModal" tabindex="-1" role="dialog" aria-labelledby="editarMensajeModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">EDITAR MENSAJE PREDETERMINADO</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="mensajePredeterminadoForm">
+                    <div class="form-group">
+                        <label>MENSAJE DE FELICITACIÓN:</label>
+                        <textarea class="form-control" id="mensajePredeterminado" rows="6">{{ session('mensaje_predeterminado', '¡Feliz Cumpleaños! 🎉
+Queremos desearte un día muy especial.
+
+Te recordamos que puedes aprovechar nuestro descuento especial de cumpleaños en tu próxima compra.
+
+¡Que tengas un excelente día!') }}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">CANCELAR</button>
+                <button type="button" class="btn btn-primary" onclick="guardarMensajePredeterminado()">GUARDAR MENSAJE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para enviar mensaje -->
+<div class="modal fade" id="enviarMensajeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ENVIAR MENSAJE DE FELICITACIÓN</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="enviarMensajeForm">
+                    <input type="hidden" id="pacienteId">
+                    <div class="form-group">
+                        <label>MENSAJE PARA: <span id="nombrePaciente"></span></label>
+                        <textarea class="form-control" id="mensajePersonalizado" rows="6"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">CANCELAR</button>
+                <button type="button" class="btn btn-success" onclick="enviarMensaje()">
+                    <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stop
 
 @section('css')
 <style>
-    /* Convertir todo el texto a mayúsculas */
-    .card-title,
-    .card-header,
-    .table th,
-    .table td,
-    .alert,
-    h1, h2, h3,
-    .btn,
-    .badge,
-    .dataTables_wrapper .dataTables_filter,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_paginate {
+    .table th, .table td {
         text-transform: uppercase !important;
     }
-    
     .badge {
-        font-size: 100%;
+        padding: 8px 12px;
+    }
+    .badge-primary {
+        background-color: #007bff;
+        color: white;
+    }
+    .text-muted {
+        font-size: 0.85em;
+    }
+    td {
+        vertical-align: middle !important;
     }
 </style>
 @stop
 
 @section('js')
 <script>
-    $(document).ready(function() {
-        $('#cumpleanosTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json"
-            },
-            "order": [[0, "asc"]],
-            "pageLength": 25,
-            "responsive": true,
-            "autoWidth": false,
-            "dom": 'Bfrtip',
-            "buttons": [
-                'excel', 'pdf', 'print'
-            ]
-        });
+function mostrarModalMensaje(pacienteId, nombrePaciente) {
+    $('#pacienteId').val(pacienteId);
+    $('#nombrePaciente').text(nombrePaciente);
+    $('#mensajePersonalizado').val($('#mensajePredeterminado').val());
+    $('#enviarMensajeModal').modal('show');
+}
 
-        // Convertir a mayúsculas los textos del DataTable
-        $('.dataTables_wrapper').find('label, .dataTables_info').css('text-transform', 'uppercase');
+function guardarMensajePredeterminado() {
+    const mensaje = $('#mensajePredeterminado').val();
+    localStorage.setItem('mensajePredeterminado', mensaje);
+    $('#editarMensajeModal').modal('hide');
+    Swal.fire({
+        icon: 'success',
+        title: '¡Guardado!',
+        text: 'El mensaje predeterminado ha sido actualizado.'
     });
+}
+
+function enviarMensaje() {
+    const pacienteId = $('#pacienteId').val();
+    const mensaje = $('#mensajePersonalizado').val();
+    const boton = $(`.btn-enviar-mensaje[data-paciente-id="${pacienteId}"]`);
+
+    $.ajax({
+        url: '/historiales_clinicos/' + pacienteId + '/enviar-mensaje',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            mensaje: mensaje,
+            tipo: 'cumpleanos'
+        },
+        success: function(response) {
+            $('#enviarMensajeModal').modal('hide');
+            
+            // Deshabilitar botón y cambiar apariencia
+            boton.prop('disabled', true)
+                 .removeClass('btn-success')
+                 .addClass('btn-secondary')
+                 .html('<i class="fas fa-check"></i> MENSAJE ENVIADO');
+            
+            Swal.fire({
+                icon: 'success',
+                title: '¡Mensaje Enviado!',
+                text: 'El mensaje de felicitación ha sido enviado correctamente.'
+            });
+        },
+        error: function(xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON?.error || 'No se pudo enviar el mensaje. Por favor, intente nuevamente.'
+            });
+        }
+    });
+}
+
+// Cargar mensaje predeterminado guardado
+$(document).ready(function() {
+    const mensajeGuardado = localStorage.getItem('mensajePredeterminado');
+    if (mensajeGuardado) {
+        $('#mensajePredeterminado').val(mensajeGuardado);
+    }
+});
 </script>
 @stop 
