@@ -29,16 +29,12 @@ class PedidosController extends Controller
                     'pagos:id,pedido_id,pago'
                 ]);
 
-            if ($request->filled('ano')) {
+            // Solo aplicar filtros si se proporcionan año y mes
+            if ($request->filled('ano') && $request->filled('mes')) {
+                $query->whereYear('fecha', $request->ano)
+                      ->whereMonth('fecha', $request->mes);
+            } else if ($request->filled('ano')) {
                 $query->whereYear('fecha', $request->ano);
-            } else {
-                $query->whereYear('fecha', now()->year);
-            }
-
-            if ($request->filled('mes')) {
-                $query->whereMonth('fecha', $request->mes);
-            } else {
-                $query->whereMonth('fecha', now()->month);
             }
 
             $pedidos = $query->select([
@@ -56,7 +52,7 @@ class PedidosController extends Controller
             ->orderBy('numero_orden', 'desc')
             ->get();
 
-            // Calcular totales solo de los pedidos del mes actual
+            // Calcular totales de los pedidos filtrados
             $totales = [
                 'ventas' => $pedidos->sum('total'),
                 'saldos' => $pedidos->sum('saldo'),

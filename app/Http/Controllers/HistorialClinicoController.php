@@ -10,14 +10,17 @@ class HistorialClinicoController extends Controller
 {
     public function index(Request $request)
     {
-        $mes = $request->get('mes', date('m'));
-        $ano = $request->get('ano', date('Y'));
+        // Iniciar la consulta con la relación usuario
+        $query = HistorialClinico::with('usuario');
 
-        // Cargar la relación 'usuario' junto con los historiales clínicos filtrados por mes y año
-        $historiales = HistorialClinico::with('usuario')
-            ->whereYear('fecha', $ano)
-            ->whereMonth('fecha', $mes)
-            ->get();
+        // Aplicar filtros solo si se proporcionan mes y año
+        if ($request->filled('mes') && $request->filled('ano')) {
+            $query->whereYear('fecha', $request->get('ano'))
+                  ->whereMonth('fecha', $request->get('mes'));
+        }
+
+        // Obtener los historiales
+        $historiales = $query->get();
 
         return view('historiales_clinicos.index', compact('historiales'));
     }

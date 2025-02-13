@@ -79,8 +79,9 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2 align-self-end">
+            <div class="col-md-4 align-self-end">
                 <button type="button" class="btn btn-primary" id="actualButton">Actual</button>
+                <button type="button" class="btn btn-success" id="mostrarTodosButton">Mostrar Todos los Pedidos</button>
             </div>
         </form>
 
@@ -266,8 +267,10 @@
             "processing": true,
             "scrollX": true,
             "order": [[1, "desc"]], // Ordenar por número de orden descendente
-            "pageLength": 50, // Mostrar 50 registros por página
-            "dom": 'Bfrtip',
+            "paging": false, // Deshabilitar paginación
+            "lengthChange": false,
+            "info": false,
+            "dom": 'Bfrt', // Quitar 'p' del dom para eliminar controles de paginación
             "buttons": [
                 {
                     extend: 'excel',
@@ -290,16 +293,7 @@
             ],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/1.10.16/i18n/Spanish.json",
-                "search": "Buscar:",
-                "info": "_TOTAL_ registros",
-                "infoEmpty": "0 registros",
-                "infoFiltered": "(filtrado de _MAX_ registros totales)",
-                "paginate": {
-                    "first": "Primero",
-                    "last": "Último",
-                    "next": "Siguiente",
-                    "previous": "Anterior"
-                }
+                "search": "Buscar:"
             },
             "initComplete": function(settings, json) {
                 // Ocultar el indicador de "processing" después de la carga inicial
@@ -317,6 +311,13 @@
             const now = new Date();
             $('#filtroAno').val(now.getFullYear());
             $('#filtroMes').val(now.getMonth() + 1);
+            $('#filterForm').submit();
+        });
+
+        // Botón "Mostrar Todos los Pedidos"
+        $('#mostrarTodosButton').click(function() {
+            $('#filtroAno').val('');
+            $('#filtroMes').val('');
             $('#filterForm').submit();
         });
 

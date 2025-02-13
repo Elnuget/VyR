@@ -43,7 +43,8 @@
                             @endfor
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">FILTRAR</button>
+                    <button type="submit" class="btn btn-primary mr-2">FILTRAR</button>
+                    <button type="button" class="btn btn-success" id="mostrarTodosButton">MOSTRAR TODOS</button>
                 </form>
             </div>
         </div>
@@ -209,6 +210,13 @@
             var url = button.data('url');
             var modal = $(this);
             modal.find('#eliminarForm').attr('action', url);
+        });
+
+        // Botón Mostrar Todos
+        $('#mostrarTodosButton').click(function() {
+            $('#mes').val('');
+            $('#ano').val('');
+            $(this).closest('form').submit();
         });
     });
 </script>
