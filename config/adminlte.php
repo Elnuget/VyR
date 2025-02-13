@@ -275,7 +275,8 @@ return [
         [
             'text' => 'Pagos',
             'icon' => 'fas fa-fw fa-money-bill',
-            'route' => 'pagos.index', // Changed from 'pagonuevos.index' to 'pagos.index'
+            'url' => '/Pagos?ano=' . date('Y') . '&mes=' . date('m'),
+            'active' => ['Pagos/*'],
         ],
 
         [
