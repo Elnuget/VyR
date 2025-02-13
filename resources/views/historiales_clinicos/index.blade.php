@@ -65,6 +65,7 @@
                         <th>APELLIDOS</th>
                         <th>FECHA</th>
                         <th>MOTIVO CONSULTA</th>
+                        <th>PRÓXIMA CONSULTA</th>
                         <th>USUARIO</th>
                         <th>ACCIONES</th>
                     </tr>
@@ -77,6 +78,15 @@
                         <td>{{ strtoupper($historial->apellidos) }}</td>
                         <td>{{ $historial->fecha }}</td>
                         <td>{{ strtoupper($historial->motivo_consulta) }}</td>
+                        <td>
+                            @if($historial->proxima_consulta)
+                                <span class="badge {{ strtotime($historial->proxima_consulta) < time() ? 'badge-danger' : 'badge-success' }}">
+                                    {{ \Carbon\Carbon::parse($historial->proxima_consulta)->format('d/m/Y') }}
+                                </span>
+                            @else
+                                <span class="badge badge-secondary">NO PROGRAMADA</span>
+                            @endif
+                        </td>
                         <td>{{ strtoupper($historial->usuario->name ?? 'N/A') }}</td>
                         <td>
                             <a href="{{ route('historiales_clinicos.edit', $historial->id) }}"
@@ -148,6 +158,29 @@
     .buttons-html5,
     .buttons-print {
         text-transform: uppercase !important;
+    }
+
+    /* Estilos para los badges de próxima consulta */
+    .badge {
+        font-size: 0.9em;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
     }
 </style>
 @stop

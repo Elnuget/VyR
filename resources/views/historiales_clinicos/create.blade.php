@@ -324,8 +324,21 @@
                                 <textarea name="tratamiento" class="form-control" rows="3" required></textarea>
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Cotización</label> <!-- Removido text-danger -->
+                                <label>Cotización</label>
                                 <input type="text" name="cotizacion" class="form-control">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Próxima Consulta (en meses)</label>
+                                <div class="input-group">
+                                    <input type="number" id="meses_proxima_consulta" class="form-control" min="1" step="1">
+                                    <select id="meses_predefinidos" class="form-control">
+                                        <option value="">Seleccione meses</option>
+                                        <option value="3">3 meses</option>
+                                        <option value="6">6 meses</option>
+                                        <option value="9">9 meses</option>
+                                    </select>
+                                    <input type="hidden" name="proxima_consulta" id="proxima_consulta">
+                                </div>
                             </div>
                             <input type="hidden" name="usuario_id" value="{{ Auth::id() }}">
                         </div>
@@ -368,21 +381,46 @@
 @section('js')
 <script>
     $(document).ready(function() {
-        // Remover la inicialización automática de collapse
-        // $('.collapse').collapse('show');
-        
-        // Toggle de iconos en los headers
-        $('.card-header').click(function() {
-            // Toggle del ícono
-            $(this).find('i').toggleClass('fa-minus fa-plus');
-            
-            // Toggle manual del collapse
-            const target = $(this).data('target');
-            $(target).collapse('toggle');
+        // Convertir input a mayúsculas mientras se escribe
+        $('input[type="text"], textarea').on('input', function() {
+            $(this).val($(this).val().toUpperCase());
         });
 
-        // Asegurarse de que todos los íconos muestren el '+' por defecto
-        $('.card-header i').removeClass('fa-minus').addClass('fa-plus');
+        // Función para calcular la próxima consulta basada en la fecha de registro
+        function calcularProximaConsulta(meses) {
+            if (!meses) return;
+            let fechaRegistro = new Date($('#fecha').val());
+            if (isNaN(fechaRegistro.getTime())) {
+                alert('Por favor, primero seleccione una fecha de registro válida');
+                return;
+            }
+            fechaRegistro.setMonth(fechaRegistro.getMonth() + parseInt(meses));
+            return fechaRegistro.toISOString().split('T')[0];
+        }
+
+        // Manejar cambios en el input de meses
+        $('#meses_proxima_consulta').on('input', function() {
+            let meses = $(this).val();
+            $('#meses_predefinidos').val(''); // Limpiar el select
+            $('#proxima_consulta').val(calcularProximaConsulta(meses));
+        });
+
+        // Manejar cambios en el select de meses predefinidos
+        $('#meses_predefinidos').on('change', function() {
+            let meses = $(this).val();
+            if (meses) {
+                $('#meses_proxima_consulta').val(meses);
+                $('#proxima_consulta').val(calcularProximaConsulta(meses));
+            }
+        });
+
+        // Recalcular próxima consulta cuando cambie la fecha de registro
+        $('#fecha').on('change', function() {
+            let meses = $('#meses_proxima_consulta').val();
+            if (meses) {
+                $('#proxima_consulta').val(calcularProximaConsulta(meses));
+            }
+        });
     });
 </script>
 @stop

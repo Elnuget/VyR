@@ -73,6 +73,7 @@ class HistorialClinicoController extends Controller
             'add' => 'nullable|string|max:50',
             'diagnostico' => 'nullable|string|max:1000',
             'tratamiento' => 'nullable|string|max:1000',
+            'proxima_consulta' => 'nullable|date',
             'cotizacion' => 'nullable|string|max:1000',
             'usuario_id' => 'nullable|exists:users,id',
         ];

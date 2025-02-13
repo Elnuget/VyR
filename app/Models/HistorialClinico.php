@@ -54,6 +54,7 @@ class HistorialClinico extends Model
         'rx_final_av_vp_oi',
         'diagnostico',
         'tratamiento',
+        'proxima_consulta',
         'cotizacion',
         'usuario_id'
     ];
