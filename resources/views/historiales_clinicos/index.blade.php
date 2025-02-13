@@ -19,6 +19,35 @@
 
 <div class="card">
     <div class="card-body">
+        {{-- Filtros de Mes y Año --}}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form action="{{ route('historiales_clinicos.index') }}" method="GET" class="form-inline">
+                    <div class="form-group mr-2">
+                        <label for="mes" class="mr-2">MES:</label>
+                        <select name="mes" id="mes" class="form-control">
+                            @for ($i = 1; $i <= 12; $i++)
+                                <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}" {{ request('mes', date('m')) == str_pad($i, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
+                                    {{ strtoupper(date('F', mktime(0, 0, 0, $i, 1))) }}
+                                </option>
+                            @endfor
+                        </select>
+                    </div>
+                    <div class="form-group mr-2">
+                        <label for="ano" class="mr-2">AÑO:</label>
+                        <select name="ano" id="ano" class="form-control">
+                            @for ($i = date('Y') - 2; $i <= date('Y') + 2; $i++)
+                                <option value="{{ $i }}" {{ request('ano', date('Y')) == $i ? 'selected' : '' }}>
+                                    {{ $i }}
+                                </option>
+                            @endfor
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">FILTRAR</button>
+                </form>
+            </div>
+        </div>
+
         {{-- Botón Añadir Historial Clínico --}}
         <div class="btn-group mb-3">
             <a type="button" class="btn btn-success" href="{{ route('historiales_clinicos.create') }}">

@@ -8,10 +8,17 @@ use Illuminate\Support\Facades\Log;
 
 class HistorialClinicoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Cargar la relación 'usuario' junto con los historiales clínicos
-        $historiales = HistorialClinico::with('usuario')->get();
+        $mes = $request->get('mes', date('m'));
+        $ano = $request->get('ano', date('Y'));
+
+        // Cargar la relación 'usuario' junto con los historiales clínicos filtrados por mes y año
+        $historiales = HistorialClinico::with('usuario')
+            ->whereYear('fecha', $ano)
+            ->whereMonth('fecha', $mes)
+            ->get();
+
         return view('historiales_clinicos.index', compact('historiales'));
     }
 

@@ -294,7 +294,8 @@ return [
         [
             'text' => 'Historiales Clínicos',
             'icon' => 'fas fa-notes-medical',
-            'route' => 'historiales_clinicos.index',
+            'url' => '/historiales_clinicos?ano=' . date('Y') . '&mes=' . date('m'),
+            'active' => ['historiales_clinicos/*', 'historiales_clinicos'],
         ],
 
         [
