@@ -131,6 +131,8 @@ class PedidosController extends Controller
     public function store(Request $request)
     {
         try {
+            \DB::beginTransaction();
+
             // Filtrar los arrays vacíos antes de crear el pedido
             $pedidoData = collect($request->all())
                 ->reject(function ($value, $key) {
@@ -149,7 +151,7 @@ class PedidosController extends Controller
             $pedido->saldo = $pedidoData['saldo'] ?? 0;
             $pedido->examen_visual = $pedidoData['examen_visual'] ?? 0;
             $pedido->valor_compra = $pedidoData['valor_compra'] ?? 0;
-            $pedido->cedula = $pedidoData['cedula'] ?? null;  // Agregar esta línea
+            $pedido->cedula = $pedidoData['cedula'] ?? null;
             
             $pedido->save();
 
@@ -227,6 +229,13 @@ class PedidosController extends Controller
                 }
             }
 
+            \DB::commit();
+
+            // Enviar correo de calificación si hay correo electrónico
+            if ($pedido->correo_electronico) {
+                \Mail::to($pedido->correo_electronico)->send(new \App\Mail\CalificacionPedido($pedido));
+            }
+
             return redirect('/Pedidos')->with([
                 'error' => 'Exito',
                 'mensaje' => 'Pedido creado exitosamente',
@@ -234,6 +243,7 @@ class PedidosController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            \DB::rollback();
             \Log::error('Error en PedidosController@store: ' . $e->getMessage());
             return redirect()->back()->withErrors($e->getMessage());
         }
@@ -394,7 +404,7 @@ class PedidosController extends Controller
     public function approve($id)
     {
         $pedido = Pedido::findOrFail($id);
-        $pedido->fact = 'Aprobado';
+        $pedido->fact = 'APROBADO';
         $pedido->save();
 
         return redirect()->route('pedidos.index')->with([
@@ -404,40 +414,59 @@ class PedidosController extends Controller
         ]);
     }
 
-    public function calificar(Request $request, $id)
-    {
-        try {
-            $pedido = Pedido::findOrFail($id);
-            
-            $request->validate([
-                'calificacion' => 'required|integer|min:1|max:5',
-                'comentario_calificacion' => 'nullable|string|max:500'
-            ]);
-
-            $pedido->update([
-                'calificacion' => $request->calificacion,
-                'comentario_calificacion' => $request->comentario_calificacion,
-                'fecha_calificacion' => now()
-            ]);
-
-            return redirect()->route('pedidos.index')->with([
-                'error' => 'Exito',
-                'mensaje' => 'Calificación registrada exitosamente',
-                'tipo' => 'alert-success'
-            ]);
-        } catch (\Exception $e) {
-            return redirect()->route('pedidos.index')->with([
-                'error' => 'Error',
-                'mensaje' => 'Error al registrar la calificación: ' . $e->getMessage(),
-                'tipo' => 'alert-danger'
-            ]);
-        }
-    }
-
     public function inventarioHistorial()
     {
         $inventario = Inventario::with('pedidos')->get();
         return view('pedidos.inventario-historial', compact('inventario'));
+    }
+
+    public function calificarPublico($id, $token)
+    {
+        $pedido = Pedido::findOrFail($id);
+        
+        // Verificar que el token sea válido
+        if ($token !== hash('sha256', $pedido->id . $pedido->created_at)) {
+            abort(403, 'Token inválido');
+        }
+
+        // Si ya está calificado, mostrar mensaje
+        if ($pedido->calificacion) {
+            return view('pedidos.calificacion-completa');
+        }
+
+        return view('pedidos.calificar-publico', compact('pedido', 'token'));
+    }
+
+    public function guardarCalificacionPublica(Request $request, $id, $token)
+    {
+        $pedido = Pedido::findOrFail($id);
+        
+        // Verificar que el token sea válido
+        if ($token !== hash('sha256', $pedido->id . $pedido->created_at)) {
+            abort(403, 'Token inválido');
+        }
+
+        // Si ya está calificado, mostrar error
+        if ($pedido->calificacion) {
+            return redirect()->back()->with('error', 'Este pedido ya ha sido calificado');
+        }
+
+        $request->validate([
+            'calificacion' => 'required|integer|min:1|max:5',
+            'comentario' => 'nullable|string|max:1000'
+        ]);
+
+        $comentarioFinal = $request->comentario 
+            ? $pedido->cliente . ': ' . $request->comentario
+            : $pedido->cliente;
+
+        $pedido->update([
+            'calificacion' => $request->calificacion,
+            'comentario_calificacion' => $comentarioFinal,
+            'fecha_calificacion' => now()
+        ]);
+
+        return view('pedidos.gracias-calificacion');
     }
 
 }

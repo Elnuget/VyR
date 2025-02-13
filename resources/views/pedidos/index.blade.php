@@ -164,7 +164,7 @@
                                 </a>
                                 <!-- Botón de Aprobar -->
                                 @can('admin')
-                                    @if($pedido->fact == 'Pendiente' && $pedido->saldo == 0 && !empty($pedido->cliente))
+                                    @if(strtoupper($pedido->fact) == 'PENDIENTE')
                                         <form action="{{ route('pedidos.approve', $pedido->id) }}" method="POST"
                                             style="display:inline;">
                                             @csrf
@@ -175,62 +175,10 @@
                                         </form>
                                     @endif
                                 @endcan
-                                @if($pedido->fact == 'Aprobado' && !$pedido->calificacion)
-                                    <button type="button" class="btn btn-warning btn-sm" 
-                                            data-toggle="modal" 
-                                            data-target="#calificarModal{{ $pedido->id }}"
-                                            title="Calificar venta">
-                                        <i class="fas fa-star"></i>
-                                    </button>
-                                @endif
-                                
-                                @if($pedido->calificacion)
-                                    <span class="badge badge-success">
-                                        {{ str_repeat('★', $pedido->calificacion) }}
-                                        {{ str_repeat('☆', 5 - $pedido->calificacion) }}
-                                    </span>
-                                @endif
                             </div>
                         </td>
                         <td>{{ $pedido->usuario }}</td>
                     </tr>
-
-                    <!-- Modal de Calificación para este pedido -->
-                    <div class="modal fade" id="calificarModal{{ $pedido->id }}" tabindex="-1" role="dialog">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form action="{{ route('pedidos.calificar', $pedido->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Calificar Venta #{{ $pedido->numero_orden }}</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span>&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="form-group">
-                                            <label>Calificación:</label>
-                                            <div class="rating">
-                                                @for($i = 5; $i >= 1; $i--)
-                                                    <input type="radio" name="calificacion" value="{{ $i }}" id="star{{ $i }}{{ $pedido->id }}">
-                                                    <label for="star{{ $i }}{{ $pedido->id }}">☆</label>
-                                                @endfor
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Comentario:</label>
-                                            <textarea name="comentario_calificacion" class="form-control" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-primary">Guardar Calificación</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     @endforeach
                 </tbody>
             </table>

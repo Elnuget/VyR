@@ -158,3 +158,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
+
+// Rutas públicas para calificación
+Route::get('/pedidos/{id}/calificar/{token}', [App\Http\Controllers\PedidosController::class, 'calificarPublico'])
+    ->name('pedidos.calificar-publico');
+Route::post('/pedidos/{id}/calificar/{token}', [App\Http\Controllers\PedidosController::class, 'guardarCalificacionPublica'])
+    ->name('pedidos.guardar-calificacion-publica');

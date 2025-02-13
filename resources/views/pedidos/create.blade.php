@@ -14,6 +14,16 @@
 @stop
 
 @section('content')
+    <style>
+        /* Estilos para hacer clickeable el header completo */
+        .card-header {
+            cursor: pointer;
+        }
+        .card-header:hover {
+            background-color: rgba(0,0,0,.03);
+        }
+    </style>
+
     {{-- Mostrar mensajes de error --}}
     @if ($errors->any())
         <div class="alert alert-danger">
@@ -407,6 +417,21 @@
 
 @section('js')
     <script>
+        // Hacer que todo el header sea clickeable
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.card-header').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    // Si el clic no fue en un botón dentro del header
+                    if (!e.target.closest('.btn-tool')) {
+                        const collapseButton = this.querySelector('.btn-tool');
+                        if (collapseButton) {
+                            collapseButton.click();
+                        }
+                    }
+                });
+            });
+        });
+
         function calculateTotal() {
             let total = 0;
 
