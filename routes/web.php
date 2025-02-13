@@ -10,6 +10,7 @@ use App\Http\Controllers\HistorialClinicoController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CashHistoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmpresaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +167,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->name('inventario.update-inline');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('empresas', EmpresaController::class);
 });
 
 // Rutas públicas para calificación

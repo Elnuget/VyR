@@ -7,6 +7,30 @@
         {{-- Left sidebar toggler link --}}
         @include('adminlte::partials.navbar.menu-item-left-sidebar-toggler')
 
+        {{-- Lista de Empresas en fila --}}
+        <li class="nav-item d-flex align-items-center">
+            <i class="fas fa-building ml-2 mr-2 text-secondary"></i>
+            @foreach(\App\Models\Empresa::all() as $empresa)
+                <span class="badge badge-info mr-2" style="font-size: 0.9rem; padding: 8px 12px;">
+                    {{ $empresa->nombre }}
+                </span>
+            @endforeach
+        </li>
+
+        {{-- Mensaje de advertencia de cierre de caja --}}
+        @php
+            $lastCashHistory = \App\Models\CashHistory::with('user')->where('estado', 'Apertura')->latest()->first();
+        @endphp
+        
+        @if($lastCashHistory)
+            <li class="nav-item d-none d-md-block">
+                <div class="alert alert-danger py-1 px-3 mb-0 ml-3 d-flex align-items-center" style="font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    El usuario {{ $lastCashHistory->user->name }} debe cerrar caja antes de salir
+                </div>
+            </li>
+        @endif
+
         {{-- Configured left links --}}
         @each('adminlte::partials.navbar.menu-item', $adminlte->menu('navbar-left'), 'item')
 
