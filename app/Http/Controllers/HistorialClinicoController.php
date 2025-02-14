@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HistorialClinico;
+use App\Models\MensajesEnviados;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -243,41 +244,221 @@ class HistorialClinicoController extends Controller
     public function cumpleanos()
     {
         try {
-            // Obtener la fecha actual
-            $hoy = now();
+            $mesActual = now()->format('m');
+            $añoActual = now()->format('Y');
             
-            // Obtener todos los historiales con fecha de nacimiento
-            $cumpleaneros = HistorialClinico::whereNotNull('fecha_nacimiento')
-                ->whereRaw('DATE_FORMAT(fecha_nacimiento, "%m-%d") = ?', [$hoy->format('m-d')])
-                ->with('usuario')
-                ->orderBy('nombres')
+            $cumpleaneros = HistorialClinico::whereRaw('MONTH(fecha_nacimiento) = ?', [$mesActual])
+                ->orderByRaw('DAY(fecha_nacimiento)')
                 ->get()
-                ->map(function ($paciente) {
+                ->map(function ($paciente) use ($añoActual) {
                     $fechaNacimiento = \Carbon\Carbon::parse($paciente->fecha_nacimiento);
-                    $edad = $fechaNacimiento->age;
-                    $ultimaConsulta = $paciente->fecha ? \Carbon\Carbon::parse($paciente->fecha)->format('d/m/Y') : 'Sin consultas';
+                    // Calcular la edad actual
+                    $edadActual = $fechaNacimiento->age;
+                    // La edad que cumplirá será la actual + 1
+                    $edadCumplir = $edadActual + 1;
                     
                     return [
                         'id' => $paciente->id,
                         'nombres' => $paciente->nombres,
                         'apellidos' => $paciente->apellidos,
                         'fecha_nacimiento' => $fechaNacimiento->format('d/m/Y'),
-                        'edad' => $edad,
+                        'dia_cumpleanos' => $fechaNacimiento->format('d'),
+                        'dia_nombre' => $fechaNacimiento->locale('es')->format('l'), // Nombre del día
+                        'edad_actual' => $edadActual,
+                        'edad_cumplir' => $edadCumplir,
                         'celular' => $paciente->celular,
-                        'ultima_consulta' => $ultimaConsulta,
-                        'motivo_consulta' => $paciente->motivo_consulta
+                        'ultima_consulta' => $paciente->fecha ? \Carbon\Carbon::parse($paciente->fecha)->format('d/m/Y') : 'SIN CONSULTAS'
                     ];
                 });
             
-            // Asegurarnos de que se use la vista de cumpleaños
             return view('historiales_clinicos.cumpleanos', [
                 'cumpleaneros' => $cumpleaneros,
-                'fecha_actual' => $hoy->format('d/m/Y')
+                'mes_actual' => now()->formatLocalized('%B')
             ]);
             
         } catch (\Exception $e) {
             Log::error('Error al obtener cumpleañeros: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error al cargar los cumpleañeros.');
+        }
+    }
+
+    public function listaCumpleanos()
+    {
+        try {
+            // Obtener el mes actual
+            $mesActual = now()->format('m');
+            $añoActual = now()->format('Y');
+            
+            // Obtener todos los pacientes que cumplen años en el mes actual
+            $cumpleaneros = HistorialClinico::whereRaw('MONTH(fecha_nacimiento) = ?', [$mesActual])
+                ->orderByRaw('DAY(fecha_nacimiento)')
+                ->get()
+                ->map(function ($paciente) use ($añoActual) {
+                    $fechaNacimiento = \Carbon\Carbon::parse($paciente->fecha_nacimiento);
+                    $edad = $fechaNacimiento->copy()->addYears($añoActual - $fechaNacimiento->year)->diffInYears(now());
+                    
+                    return [
+                        'id' => $paciente->id,
+                        'nombres' => $paciente->nombres,
+                        'apellidos' => $paciente->apellidos,
+                        'fecha_nacimiento' => $fechaNacimiento->format('d/m/Y'),
+                        'dia_cumpleanos' => $fechaNacimiento->format('d'),
+                        'edad_cumplir' => $edad,
+                        'celular' => $paciente->celular
+                    ];
+                });
+            
+            return view('historiales_clinicos.lista_cumpleanos', [
+                'cumpleaneros' => $cumpleaneros,
+                'mes_actual' => now()->formatLocalized('%B')
+            ]);
+                
+        } catch (\Exception $e) {
+            Log::error('Error al obtener lista de cumpleaños: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al cargar la lista de cumpleaños.');
+        }
+    }
+
+    public function proximasConsultas()
+    {
+        try {
+            // Obtener la fecha actual
+            $hoy = now();
+            
+            // Obtener historiales con próxima consulta en los próximos 7 días
+            $consultas = HistorialClinico::whereNotNull('proxima_consulta')
+                ->whereDate('proxima_consulta', '>=', $hoy)
+                ->whereDate('proxima_consulta', '<=', $hoy->copy()->addDays(7))
+                ->orderBy('proxima_consulta')
+                ->get()
+                ->map(function ($historial) use ($hoy) {
+                    $proximaConsulta = \Carbon\Carbon::parse($historial->proxima_consulta);
+                    $diasRestantes = $hoy->diffInDays($proximaConsulta, false);
+                    
+                    return [
+                        'id' => $historial->id,
+                        'nombres' => $historial->nombres,
+                        'apellidos' => $historial->apellidos,
+                        'celular' => $historial->celular,
+                        'fecha_consulta' => $proximaConsulta->format('d/m/Y'),
+                        'dias_restantes' => max(0, $diasRestantes),
+                        'ultima_consulta' => $historial->fecha ? \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y') : 'SIN CONSULTAS',
+                        'motivo_consulta' => $historial->motivo_consulta
+                    ];
+                })
+                ->sortBy('dias_restantes')
+                ->values();
+            
+            return view('historiales_clinicos.proximas_consultas', compact('consultas'));
+                
+        } catch (\Exception $e) {
+            Log::error('Error al obtener próximas consultas: ' . $e->getMessage());
+            return redirect()->back()->with([
+                'error' => 'Error al cargar las próximas consultas.',
+                'tipo' => 'alert-danger'
+            ]);
+        }
+    }
+
+    public function enviarMensaje(Request $request, $id)
+    {
+        try {
+            $historial = HistorialClinico::findOrFail($id);
+            
+            // Verificar si ya se envió un mensaje hoy
+            $mensajeEnviado = MensajesEnviados::where('historial_id', $id)
+                ->where('tipo', $request->tipo)
+                ->whereDate('fecha_envio', today())
+                ->exists();
+                
+            if ($mensajeEnviado) {
+                return response()->json([
+                    'error' => 'Ya se envió un mensaje hoy a este paciente'
+                ], 422);
+            }
+
+            // Formatear número de teléfono
+            $telefono = $historial->celular;
+            if (!$telefono) {
+                throw new \Exception('El paciente no tiene número de teléfono registrado.');
+            }
+
+            if (substr($telefono, 0, 1) === '0') {
+                $telefono = '593' . substr($telefono, 1);
+            } else if (substr($telefono, 0, 3) !== '593') {
+                $telefono = '593' . $telefono;
+            }
+
+            // Guardar registro del mensaje enviado
+            MensajesEnviados::create([
+                'historial_id' => $id,
+                'tipo' => $request->tipo,
+                'mensaje' => $request->mensaje,
+                'fecha_envio' => now()
+            ]);
+
+            // Generar URL de WhatsApp
+            $mensajeCodificado = urlencode($request->mensaje);
+            $whatsappUrl = "https://wa.me/{$telefono}?text={$mensajeCodificado}";
+
+            return response()->json([
+                'success' => true,
+                'url' => $whatsappUrl
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function recordatoriosConsulta()
+    {
+        try {
+            // Obtener el mes actual
+            $hoy = now();
+            $inicioMes = $hoy->startOfMonth();
+            $finMes = $hoy->copy()->endOfMonth();
+            
+            // Obtener historiales con próxima consulta en el mes actual
+            $consultas = HistorialClinico::whereNotNull('proxima_consulta')
+                ->whereDate('proxima_consulta', '>=', $inicioMes)
+                ->whereDate('proxima_consulta', '<=', $finMes)
+                ->orderBy('proxima_consulta')
+                ->get()
+                ->map(function ($historial) use ($hoy) {
+                    $proximaConsulta = \Carbon\Carbon::parse($historial->proxima_consulta);
+                    $diasRestantes = $hoy->diffInDays($proximaConsulta, false);
+                    
+                    return [
+                        'id' => $historial->id,
+                        'nombres' => $historial->nombres,
+                        'apellidos' => $historial->apellidos,
+                        'celular' => $historial->celular,
+                        'fecha_consulta' => $proximaConsulta->format('d/m/Y'),
+                        'dias_restantes' => max(0, $diasRestantes),
+                        'ultima_consulta' => $historial->fecha ? \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y') : 'SIN CONSULTAS',
+                        'motivo_consulta' => $historial->motivo_consulta
+                    ];
+                })
+                ->sortBy('dias_restantes')
+                ->values();
+            
+            // Obtener el nombre del mes actual
+            $mesActual = $hoy->formatLocalized('%B');
+            
+            return view('mensajes.recordatorios', [
+                'consultas' => $consultas,
+                'mes_actual' => strtoupper($mesActual)
+            ]);
+                
+        } catch (\Exception $e) {
+            Log::error('Error al obtener próximas consultas: ' . $e->getMessage());
+            return redirect()->back()->with([
+                'error' => 'Error al cargar las próximas consultas.',
+                'tipo' => 'alert-danger'
+            ]);
         }
     }
 }

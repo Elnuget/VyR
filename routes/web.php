@@ -128,6 +128,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         
         Route::get('/{historial}/whatsapp', [HistorialClinicoController::class, 'enviarWhatsapp'])
             ->name('historiales_clinicos.whatsapp');
+
+        Route::get('/lista-cumpleanos', [HistorialClinicoController::class, 'listaCumpleanos'])
+            ->name('historiales_clinicos.lista_cumpleanos');
+
+        Route::get('/proximas-consultas', [HistorialClinicoController::class, 'proximasConsultas'])
+            ->name('historiales_clinicos.proximas_consultas');
+
+        Route::post('/{id}/enviar-mensaje', [HistorialClinicoController::class, 'enviarMensaje'])
+            ->name('historiales_clinicos.enviar-mensaje');
     });
 
     // Pagos
@@ -163,6 +172,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('empresas', EmpresaController::class);
+
+    // Nuevas rutas para mensajes
+    Route::prefix('mensajes')->group(function () {
+        Route::get('/cumpleanos', [HistorialClinicoController::class, 'cumpleanos'])
+            ->name('mensajes.cumpleanos');
+        Route::get('/recordatorios', [HistorialClinicoController::class, 'recordatoriosConsulta'])
+            ->name('mensajes.recordatorios');
+    });
 });
 
 // Rutas públicas para calificación
