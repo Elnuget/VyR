@@ -28,34 +28,60 @@ class HistorialClinicoController extends Controller
 
     public function create()
     {
-        return view('historiales_clinicos.create');
+        // Obtener antecedentes únicos
+        $antecedentesPersonalesOculares = HistorialClinico::select('antecedentes_personales_oculares')
+            ->whereNotNull('antecedentes_personales_oculares')
+            ->distinct()
+            ->pluck('antecedentes_personales_oculares');
+
+        $antecedentesPersonalesGenerales = HistorialClinico::select('antecedentes_personales_generales')
+            ->whereNotNull('antecedentes_personales_generales')
+            ->distinct()
+            ->pluck('antecedentes_personales_generales');
+
+        $antecedentesFamiliaresOculares = HistorialClinico::select('antecedentes_familiares_oculares')
+            ->whereNotNull('antecedentes_familiares_oculares')
+            ->distinct()
+            ->pluck('antecedentes_familiares_oculares');
+
+        $antecedentesFamiliaresGenerales = HistorialClinico::select('antecedentes_familiares_generales')
+            ->whereNotNull('antecedentes_familiares_generales')
+            ->distinct()
+            ->pluck('antecedentes_familiares_generales');
+
+        return view('historiales_clinicos.create', compact(
+            'antecedentesPersonalesOculares',
+            'antecedentesPersonalesGenerales',
+            'antecedentesFamiliaresOculares',
+            'antecedentesFamiliaresGenerales'
+        ));
     }
 
     protected function validationRules()
     {
         return [
-            'nombres' => 'nullable|string|max:255',
-            'apellidos' => 'nullable|string|max:255',
-            'edad' => 'nullable|numeric|min:0|max:150',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'edad' => 'required|numeric|min:0|max:150',
             'fecha_nacimiento' => 'nullable|date',
             'cedula' => 'nullable|string|max:50',
-            'celular' => 'nullable|string|max:20',
-            'ocupacion' => 'nullable|string|max:100',
-            'fecha' => 'nullable|date',
-            'motivo_consulta' => 'nullable|string|max:1000',
-            'enfermedad_actual' => 'nullable|string|max:1000',
-            'antecedentes_personales_oculares' => 'nullable|string|max:1000',
-            'antecedentes_personales_generales' => 'nullable|string|max:1000',
-            'antecedentes_familiares_oculares' => 'nullable|string|max:1000',
-            'antecedentes_familiares_generales' => 'nullable|string|max:1000',
-            'agudeza_visual_vl_sin_correccion_od' => 'nullable|string|max:50',
-            'agudeza_visual_vl_sin_correccion_oi' => 'nullable|string|max:50',
-            'agudeza_visual_vl_sin_correccion_ao' => 'nullable|string|max:50',
-            'agudeza_visual_vp_sin_correccion_od' => 'nullable|string|max:50',
-            'agudeza_visual_vp_sin_correccion_oi' => 'nullable|string|max:50',
-            'agudeza_visual_vp_sin_correccion_ao' => 'nullable|string|max:50',
-            'ph_od' => 'nullable|string|max:50',
-            'ph_oi' => 'nullable|string|max:50',
+            'celular' => 'required|string|max:20',
+            'ocupacion' => 'required|string|max:100',
+            'fecha' => 'required|date',
+            'motivo_consulta' => 'required|string|max:1000',
+            'enfermedad_actual' => 'required|string|max:1000',
+            'antecedentes_personales_oculares' => 'required|string|max:1000',
+            'antecedentes_personales_generales' => 'required|string|max:1000',
+            'antecedentes_familiares_oculares' => 'required|string|max:1000',
+            'antecedentes_familiares_generales' => 'required|string|max:1000',
+            'agudeza_visual_vl_sin_correccion_od' => 'required|string|max:50',
+            'agudeza_visual_vl_sin_correccion_oi' => 'required|string|max:50',
+            'agudeza_visual_vl_sin_correccion_ao' => 'required|string|max:50',
+            'agudeza_visual_vp_sin_correccion_od' => 'required|string|max:50',
+            'agudeza_visual_vp_sin_correccion_oi' => 'required|string|max:50',
+            'agudeza_visual_vp_sin_correccion_ao' => 'required|string|max:50',
+            'ph_od' => 'required|string|max:50',
+            'ph_oi' => 'required|string|max:50',
             'optotipo' => 'nullable|string|max:1000',
             'lensometria_od' => 'nullable|string|max:50',
             'lensometria_oi' => 'nullable|string|max:50',
@@ -63,17 +89,17 @@ class HistorialClinicoController extends Controller
             'material' => 'nullable|string|max:50',
             'filtro' => 'nullable|string|max:50',
             'tiempo_uso' => 'nullable|string|max:50',
-            'refraccion_od' => 'nullable|string|max:50',
-            'refraccion_oi' => 'nullable|string|max:50',
-            'rx_final_dp_od' => 'nullable|string|max:50',
-            'rx_final_dp_oi' => 'nullable|string|max:50',
-            'rx_final_av_vl_od' => 'nullable|string|max:50',
-            'rx_final_av_vl_oi' => 'nullable|string|max:50',
-            'rx_final_av_vp_od' => 'nullable|string|max:50',
-            'rx_final_av_vp_oi' => 'nullable|string|max:50',
+            'refraccion_od' => 'required|string|max:50',
+            'refraccion_oi' => 'required|string|max:50',
+            'rx_final_dp_od' => 'required|string|max:50',
+            'rx_final_dp_oi' => 'required|string|max:50',
+            'rx_final_av_vl_od' => 'required|string|max:50',
+            'rx_final_av_vl_oi' => 'required|string|max:50',
+            'rx_final_av_vp_od' => 'required|string|max:50',
+            'rx_final_av_vp_oi' => 'required|string|max:50',
             'add' => 'nullable|string|max:50',
-            'diagnostico' => 'nullable|string|max:1000',
-            'tratamiento' => 'nullable|string|max:1000',
+            'diagnostico' => 'required|string|max:1000',
+            'tratamiento' => 'required|string|max:1000',
             'proxima_consulta' => 'nullable|date',
             'cotizacion' => 'nullable|string|max:1000',
             'usuario_id' => 'nullable|exists:users,id',
@@ -82,15 +108,81 @@ class HistorialClinicoController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate($this->validationRules());
-        
-        // Asegurarse de que el usuario_id esté establecido
-        if (!isset($data['usuario_id'])) {
-            $data['usuario_id'] = auth()->id();
+        try {
+            // Validar los datos
+            $validator = \Validator::make($request->all(), $this->validationRules(), [
+                'required' => 'El campo :attribute es obligatorio.',
+                'string' => 'El campo :attribute debe ser texto.',
+                'max' => [
+                    'numeric' => 'El campo :attribute no debe ser mayor a :max.',
+                    'string' => 'El campo :attribute no debe exceder :max caracteres.',
+                ],
+                'numeric' => 'El campo :attribute debe ser un número.',
+                'date' => 'El campo :attribute debe ser una fecha válida.',
+                'min' => [
+                    'numeric' => 'El campo :attribute debe ser al menos :min.',
+                    'string' => 'El campo :attribute debe tener al menos :min caracteres.',
+                ],
+            ], [
+                'edad' => 'edad',
+                'nombres' => 'nombres',
+                'apellidos' => 'apellidos',
+                'celular' => 'celular',
+                'ocupacion' => 'ocupación',
+                'motivo_consulta' => 'motivo de consulta',
+                'enfermedad_actual' => 'enfermedad actual',
+                'antecedentes_personales_oculares' => 'antecedentes personales oculares',
+                'antecedentes_personales_generales' => 'antecedentes personales generales',
+                'antecedentes_familiares_oculares' => 'antecedentes familiares oculares',
+                'antecedentes_familiares_generales' => 'antecedentes familiares generales',
+                'agudeza_visual_vl_sin_correccion_od' => 'agudeza visual VL sin corrección OD',
+                'agudeza_visual_vl_sin_correccion_oi' => 'agudeza visual VL sin corrección OI',
+                'agudeza_visual_vl_sin_correccion_ao' => 'agudeza visual VL sin corrección AO',
+                'agudeza_visual_vp_sin_correccion_od' => 'agudeza visual VP sin corrección OD',
+                'agudeza_visual_vp_sin_correccion_oi' => 'agudeza visual VP sin corrección OI',
+                'agudeza_visual_vp_sin_correccion_ao' => 'agudeza visual VP sin corrección AO',
+                'ph_od' => 'PH OD',
+                'ph_oi' => 'PH OI',
+                'refraccion_od' => 'refracción OD',
+                'refraccion_oi' => 'refracción OI',
+                'rx_final_dp_od' => 'RX final DP OD',
+                'rx_final_dp_oi' => 'RX final DP OI',
+                'rx_final_av_vl_od' => 'RX final AV VL OD',
+                'rx_final_av_vl_oi' => 'RX final AV VL OI',
+                'rx_final_av_vp_od' => 'RX final AV VP OD',
+                'rx_final_av_vp_oi' => 'RX final AV VP OI',
+                'diagnostico' => 'diagnóstico',
+                'tratamiento' => 'tratamiento'
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()
+                    ->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $data = $validator->validated();
+            
+            // Asegurarse de que el usuario_id esté establecido
+            if (!isset($data['usuario_id'])) {
+                $data['usuario_id'] = auth()->id();
+            }
+            
+            // Crear el historial clínico
+            HistorialClinico::create($data);
+
+            return redirect()
+                ->route('historiales_clinicos.index')
+                ->with('success', 'Historial clínico creado exitosamente');
+                
+        } catch (\Exception $e) {
+            Log::error('Error al crear historial clínico: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['error_general' => 'Error al crear el historial clínico: ' . $e->getMessage()]);
         }
-        
-        HistorialClinico::create($data);
-        return redirect()->route('historiales_clinicos.index')->with('success', 'Historial clínico creado exitosamente');
     }
 
     public function show(HistorialClinico $historialClinico)

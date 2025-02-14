@@ -9,6 +9,17 @@
 @section('content')
 <div class="card">
     <div class="card-body">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-exclamation-triangle"></i> Por favor corrige los siguientes errores:</h6>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('historiales_clinicos.store') }}" method="POST">
             @csrf
 
@@ -109,19 +120,39 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Antecedentes Personales Oculares <span class="text-danger">*</span></label>
-                                <textarea name="antecedentes_personales_oculares" class="form-control" rows="3" required></textarea>
+                                <input list="antecedentesPersonalesOcularesList" name="antecedentes_personales_oculares" class="form-control" required>
+                                <datalist id="antecedentesPersonalesOcularesList">
+                                    @foreach($antecedentesPersonalesOculares as $antecedente)
+                                        <option value="{{ $antecedente }}">
+                                    @endforeach
+                                </datalist>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Antecedentes Personales Generales <span class="text-danger">*</span></label>
-                                <textarea name="antecedentes_personales_generales" class="form-control" rows="3" required></textarea>
+                                <input list="antecedentesPersonalesGeneralesList" name="antecedentes_personales_generales" class="form-control" required>
+                                <datalist id="antecedentesPersonalesGeneralesList">
+                                    @foreach($antecedentesPersonalesGenerales as $antecedente)
+                                        <option value="{{ $antecedente }}">
+                                    @endforeach
+                                </datalist>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Antecedentes Familiares Oculares <span class="text-danger">*</span></label>
-                                <textarea name="antecedentes_familiares_oculares" class="form-control" rows="3" required></textarea>
+                                <input list="antecedentesFamiliaresOcularesList" name="antecedentes_familiares_oculares" class="form-control" required>
+                                <datalist id="antecedentesFamiliaresOcularesList">
+                                    @foreach($antecedentesFamiliaresOculares as $antecedente)
+                                        <option value="{{ $antecedente }}">
+                                    @endforeach
+                                </datalist>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Antecedentes Familiares Generales <span class="text-danger">*</span></label>
-                                <textarea name="antecedentes_familiares_generales" class="form-control" rows="3" required></textarea>
+                                <input list="antecedentesFamiliaresGeneralesList" name="antecedentes_familiares_generales" class="form-control" required>
+                                <datalist id="antecedentesFamiliaresGeneralesList">
+                                    @foreach($antecedentesFamiliaresGenerales as $antecedente)
+                                        <option value="{{ $antecedente }}">
+                                    @endforeach
+                                </datalist>
                             </div>
                         </div>
                     </div>
