@@ -63,7 +63,7 @@
         <div class="card-body">
             <!-- Filtros -->
             <div class="row mb-4">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>LUGAR</label>
                         <select class="form-control" id="filtroCategoria">
@@ -74,33 +74,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>ESTADO DE STOCK</label>
-                        <select class="form-control" id="filtroStock">
-                            <option value="">TODOS</option>
-                            <option value="EN STOCK">EN STOCK</option>
-                            <option value="SIN STOCK">SIN STOCK</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>MOVIMIENTOS</label>
-                        <select class="form-control" id="filtroMovimientos">
-                            <option value="">TODOS</option>
-                            <option value="VENDIDO">VENDIDO</option>
-                            <option value="EN STOCK">EN STOCK</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label>MES</label>
                         <input type="month" class="form-control" id="filtroMes">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-5">
                     <div class="form-group">
                         <label>BUSCAR</label>
                         <input type="text" class="form-control" id="filtroBusqueda" placeholder="CÓDIGO O DESCRIPCIÓN...">
@@ -157,6 +137,7 @@
                             <th>CATEGORÍA</th>
                             <th>STOCK ACTUAL</th>
                             <th>HISTORIAL DE VENTAS</th>
+                            <th>ÓRDENES ASOCIADAS</th>
                             <th>ÚLTIMO MOVIMIENTO</th>
                         </tr>
                     </thead>
@@ -170,7 +151,28 @@
                                     {{ $item->cantidad }}
                                 </span>
                             </td>
-                            <td>{{ $item->pedidos->count() > 0 ? 'VENDIDO' : 'SIN MOVIMIENTOS' }}</td>
+                            <td>
+                                @if($item->pedidos->count() > 0)
+                                    VENDIDO ({{ $item->pedidos->count() }} {{ $item->pedidos->count() == 1 ? 'PEDIDO' : 'PEDIDOS' }})
+                                @else
+                                    SIN MOVIMIENTOS
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->pedidos->count() > 0)
+                                    @foreach($item->pedidos as $pedido)
+                                        <div class="mb-1">
+                                            <span class="badge bg-info">
+                                                ORDEN #{{ $pedido->id }} - {{ $pedido->created_at->format('d/m/Y') }}<br>
+                                                CLIENTE: {{ $pedido->cliente ?? 'N/A' }}<br>
+                                                VENDEDOR: {{ $pedido->usuario ?? 'N/A' }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <span class="badge bg-secondary">SIN ÓRDENES</span>
+                                @endif
+                            </td>
                             <td>{{ $item->updated_at->format('d/m/Y') }}</td>
                         </tr>
                         @endforeach
@@ -292,24 +294,6 @@ $(document).ready(function() {
     $('#filtroCategoria').on('change', function() {
         let valor = $(this).val();
         tabla.column(1).search(valor).draw();
-    });
-
-    // Filtro por estado de stock
-    $('#filtroStock').on('change', function() {
-        let valor = $(this).val();
-        if (valor === 'EN STOCK') {
-            tabla.column(2).search('1', true, false).draw();
-        } else if (valor === 'SIN STOCK') {
-            tabla.column(2).search('0', true, false).draw();
-        } else {
-            tabla.column(2).search('').draw();
-        }
-    });
-
-    // Filtro por movimientos
-    $('#filtroMovimientos').on('change', function() {
-        let valor = $(this).val();
-        tabla.column(3).search(valor).draw();
     });
 
     // Filtro por mes

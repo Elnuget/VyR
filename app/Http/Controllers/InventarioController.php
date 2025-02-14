@@ -283,39 +283,67 @@ class InventarioController extends Controller
                 ], $messages);
 
             } catch (\Illuminate\Validation\ValidationException $e) {
-                \Log::error('Error de validación: ', [
-                    'errors' => $e->errors(),
-                    'data_received' => $request->all()
+                \Log::error('Error de validación', [
+                    'errors' => $e->errors()
                 ]);
-                
-                // Obtener el primer mensaje de error
-                $firstError = collect($e->errors())->first()[0] ?? 'Error de validación';
-                
                 return response()->json([
                     'success' => false,
-                    'message' => $firstError
+                    'message' => 'Error de validación',
+                    'errors' => $e->errors()
                 ], 422);
             }
-
-            $validatedData['codigo'] = strtoupper($validatedData['codigo']);
-            
-            \Log::info('Datos validados:', ['data' => $validatedData]);
 
             $inventario->update($validatedData);
 
             return response()->json([
                 'success' => true,
-                'data' => $validatedData,
-                'message' => 'Registro actualizado correctamente'
+                'message' => 'Artículo actualizado correctamente'
             ]);
+
         } catch (\Exception $e) {
-            \Log::error('Error en actualización inline: ' . $e->getMessage(), [
-                'exception' => $e,
-                'data' => $request->all()
+            \Log::error('Error al actualizar inventario inline', [
+                'error' => $e->getMessage()
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error al actualizar el registro: ' . $e->getMessage()
+                'message' => 'Error al actualizar el artículo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualiza la fecha de múltiples artículos a la fecha actual
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function actualizarFechas(Request $request)
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'required|integer|exists:inventarios,id'
+            ]);
+
+            $fechaActual = now()->format('Y-m-d');
+            
+            Inventario::whereIn('id', $request->ids)
+                ->update(['fecha' => $fechaActual]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fechas actualizadas correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar fechas de inventario', [
+                'error' => $e->getMessage(),
+                'ids' => $request->ids ?? null
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar las fechas: ' . $e->getMessage()
             ], 500);
         }
     }
