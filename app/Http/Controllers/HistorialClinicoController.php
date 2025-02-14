@@ -326,13 +326,14 @@ class HistorialClinicoController extends Controller
             $hoy = now();
             
             // Obtener historiales con próxima consulta en los próximos 7 días
-            $proximasConsultas = HistorialClinico::whereNotNull('proxima_consulta')
+            $consultas = HistorialClinico::whereNotNull('proxima_consulta')
                 ->whereDate('proxima_consulta', '>=', $hoy)
                 ->whereDate('proxima_consulta', '<=', $hoy->copy()->addDays(7))
                 ->orderBy('proxima_consulta')
                 ->get()
-                ->map(function ($historial) {
+                ->map(function ($historial) use ($hoy) {
                     $proximaConsulta = \Carbon\Carbon::parse($historial->proxima_consulta);
+                    $diasRestantes = $hoy->diffInDays($proximaConsulta, false);
                     
                     return [
                         'id' => $historial->id,
@@ -340,19 +341,22 @@ class HistorialClinicoController extends Controller
                         'apellidos' => $historial->apellidos,
                         'celular' => $historial->celular,
                         'fecha_consulta' => $proximaConsulta->format('d/m/Y'),
-                        'dias_restantes' => $proximaConsulta->diffInDays(now()),
-                        'ultima_consulta' => \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y'),
+                        'dias_restantes' => max(0, $diasRestantes),
+                        'ultima_consulta' => $historial->fecha ? \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y') : 'SIN CONSULTAS',
                         'motivo_consulta' => $historial->motivo_consulta
                     ];
-                });
+                })
+                ->sortBy('dias_restantes')
+                ->values();
             
-            return view('historiales_clinicos.proximas_consultas', [
-                'consultas' => $proximasConsultas
-            ]);
+            return view('historiales_clinicos.proximas_consultas', compact('consultas'));
                 
         } catch (\Exception $e) {
             Log::error('Error al obtener próximas consultas: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error al cargar las próximas consultas.');
+            return redirect()->back()->with([
+                'error' => 'Error al cargar las próximas consultas.',
+                'tipo' => 'alert-danger'
+            ]);
         }
     }
 
@@ -373,10 +377,16 @@ class HistorialClinicoController extends Controller
                 ], 422);
             }
 
-            // Enviar mensaje de WhatsApp
+            // Formatear número de teléfono
             $telefono = $historial->celular;
             if (!$telefono) {
                 throw new \Exception('El paciente no tiene número de teléfono registrado.');
+            }
+
+            if (substr($telefono, 0, 1) === '0') {
+                $telefono = '593' . substr($telefono, 1);
+            } else if (substr($telefono, 0, 3) !== '593') {
+                $telefono = '593' . $telefono;
             }
 
             // Guardar registro del mensaje enviado
@@ -400,6 +410,55 @@ class HistorialClinicoController extends Controller
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function recordatoriosConsulta()
+    {
+        try {
+            // Obtener el mes actual
+            $hoy = now();
+            $inicioMes = $hoy->startOfMonth();
+            $finMes = $hoy->copy()->endOfMonth();
+            
+            // Obtener historiales con próxima consulta en el mes actual
+            $consultas = HistorialClinico::whereNotNull('proxima_consulta')
+                ->whereDate('proxima_consulta', '>=', $inicioMes)
+                ->whereDate('proxima_consulta', '<=', $finMes)
+                ->orderBy('proxima_consulta')
+                ->get()
+                ->map(function ($historial) use ($hoy) {
+                    $proximaConsulta = \Carbon\Carbon::parse($historial->proxima_consulta);
+                    $diasRestantes = $hoy->diffInDays($proximaConsulta, false);
+                    
+                    return [
+                        'id' => $historial->id,
+                        'nombres' => $historial->nombres,
+                        'apellidos' => $historial->apellidos,
+                        'celular' => $historial->celular,
+                        'fecha_consulta' => $proximaConsulta->format('d/m/Y'),
+                        'dias_restantes' => max(0, $diasRestantes),
+                        'ultima_consulta' => $historial->fecha ? \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y') : 'SIN CONSULTAS',
+                        'motivo_consulta' => $historial->motivo_consulta
+                    ];
+                })
+                ->sortBy('dias_restantes')
+                ->values();
+            
+            // Obtener el nombre del mes actual
+            $mesActual = $hoy->formatLocalized('%B');
+            
+            return view('mensajes.recordatorios', [
+                'consultas' => $consultas,
+                'mes_actual' => strtoupper($mesActual)
+            ]);
+                
+        } catch (\Exception $e) {
+            Log::error('Error al obtener próximas consultas: ' . $e->getMessage());
+            return redirect()->back()->with([
+                'error' => 'Error al cargar las próximas consultas.',
+                'tipo' => 'alert-danger'
+            ]);
         }
     }
 }

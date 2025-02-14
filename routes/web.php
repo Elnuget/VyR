@@ -169,6 +169,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('empresas', EmpresaController::class);
+
+    // Nuevas rutas para mensajes
+    Route::prefix('mensajes')->group(function () {
+        Route::get('/cumpleanos', [HistorialClinicoController::class, 'cumpleanos'])
+            ->name('mensajes.cumpleanos');
+        Route::get('/recordatorios', [HistorialClinicoController::class, 'recordatoriosConsulta'])
+            ->name('mensajes.recordatorios');
+    });
 });
 
 // Rutas públicas para calificación

@@ -11,7 +11,12 @@ class HistorialClinico extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'historiales_clinicos';
-    protected $dates = ['deleted_at'];
+    protected $dates = [
+        'deleted_at',
+        'fecha',
+        'fecha_nacimiento',
+        'proxima_consulta'
+    ];
 
     protected $fillable = [
         'fecha',

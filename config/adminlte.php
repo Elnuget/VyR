@@ -304,12 +304,12 @@ return [
             'submenu' => [
                 [
                     'text' => 'MENSAJES CUMPLEAÑOS',
-                    'route' => 'historiales_clinicos.cumpleanos',
+                    'url'  => 'mensajes/cumpleanos',
                     'icon' => 'fas fa-birthday-cake',
                 ],
                 [
-                    'text' => 'MENSAJES PRÓXIMA CONSULTA',
-                    'route' => 'historiales_clinicos.proximas_consultas',
+                    'text' => 'RECORDATORIOS CONSULTA',
+                    'url'  => 'mensajes/recordatorios',
                     'icon' => 'fas fa-calendar-check',
                 ],
             ],
