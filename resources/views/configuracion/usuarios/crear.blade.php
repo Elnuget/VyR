@@ -48,6 +48,13 @@
                                
                                 </select>
                         </div>
+                        <div class ="form-group">
+                                <label>Administrador</label>
+                                <select id="is_admin" name="is_admin" class="form-control">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                                </select>
+                        </div>
                 <button type="button" class="btn btn-primary pull-left" data-toggle="modal" data-target="#modal">Crear usuario</button>
   <div class="modal fade" id="modal">
     <div class="modal-dialog">

@@ -18,6 +18,9 @@
 @section('content')
     <div class="card">
         <div class="card-body">
+            <div class="mb-3">
+                <a type="button" class="btn btn-success" href="{{ route('configuracion.usuarios.create') }}">CREAR USUARIO</a>
+            </div>
             <div class="table-responsive">
                 <table id="example" class="table table-striped table-bordered">
                     <thead>
@@ -27,6 +30,7 @@
                             <td>USUARIO</td>
                             <td>MAIL</td>
                             <td>ACTIVO</td>
+                            <td>ADMINISTRADOR</td>
                             <td>EDITAR</td>
                         </tr>
                     </thead>
@@ -38,6 +42,7 @@
                                 <td>{{ strtoupper($usuario->user) }}</td>
                                 <td>{{ $usuario->email }}</td>
                                 <td>{{ $usuario->active ? 'ACTIVO' : 'INACTIVO' }}</td>
+                                <td>{{ $usuario->is_admin ? 'SÍ' : 'NO' }}</td>
                                 <td>
                                     <div class="btn-group">
                                         <a type="button" class="btn btn-success"
@@ -48,10 +53,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-            <br>
-            <div class="btn-group">
-                <a type="button" class="btn btn-success" href="{{ route('configuracion.usuarios.create') }}">CREAR USUARIO</a>
             </div>
         </div>
     </div>

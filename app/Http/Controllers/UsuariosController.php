@@ -26,6 +26,7 @@ class UsuariosController extends Controller
         $usuario->user = $request->user;
         $usuario->email = $request->email;
         $usuario->active = $request->activo;
+        $usuario->is_admin = $request->is_admin;
         $usuario->password = Hash::make($request->password);
         try {
             $usuario->save();
@@ -54,6 +55,7 @@ class UsuariosController extends Controller
         $usuario->user = $request->user;
         $usuario->email = $request->email;
         $usuario->active = $request->activo;
+        $usuario->is_admin = $request->is_admin;
         try {
             $usuario->save();
             return redirect()->route('configuracion.usuarios.index')->with([
@@ -62,7 +64,6 @@ class UsuariosController extends Controller
                 'tipo' => 'alert-primary'
             ]);
         } catch (\Exception $e) {
-
             return view('configuracion.usuarios.editar', compact('usuario'));
         }
     }

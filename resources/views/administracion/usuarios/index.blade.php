@@ -21,6 +21,11 @@
 
 <div class="card">
     <div class="card-body">
+            <div class="btn-group">
+            <a type="button" class="btn btn-success" href="{{route('configuracion.usuarios.create')}}">Crear usuario</a>
+            
+            </div>
+        </div>
         <table id="example"  class="table table-striped table-bordered">
             <thead>
                 <tr>
@@ -29,6 +34,7 @@
                     <td>Usuario</td>
                     <td>Mail</td>
                     <td>Activo</td>
+                    <td>Administrador</td>
                     <td>Editar</td>
                 </tr>
             </thead>
@@ -47,6 +53,14 @@
                            Inactivo
                         @endif       
                         </td>
+                        <td>
+                        @if ($u->is_admin === 1)
+                           Sí
+                       
+                        @else
+                           No
+                        @endif       
+                        </td>
                         <td><div class="btn-group">
                             <a type="button" class="btn btn-success" href="{{route('configuracion.usuarios.editar', $u->id)}}">Datos</a>
                             
@@ -56,12 +70,7 @@
                 @endforeach
             </tbody>
         </table>
-        <br>
-        <div class="btn-group">
-            <a type="button" class="btn btn-success" href="{{route('configuracion.usuarios.create')}}">Crear usuario</a>
-            
-            </div>
-        </div>
+        
 </div>
            
     

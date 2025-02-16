@@ -48,6 +48,18 @@
                                 @endif    
                                 </select>
                         </div>
+                        <div class ="form-group">
+                                <label>ADMINISTRADOR</label>
+                                <select id="is_admin" name="is_admin" class="form-control">
+                                @if ($usuario->is_admin === 1)
+                                <option value="1">SÍ</option>
+                                <option value="0">NO</option>
+                                @else
+                                <option value="1">SÍ</option>
+                                <option value="0" selected>NO</option>
+                                @endif    
+                                </select>
+                        </div>
                 <button type="button" class="btn btn-primary pull-left" data-toggle="modal" data-target="#modal">EDITAR USUARIO</button>
   <div class="modal fade" id="modal">
     <div class="modal-dialog">
