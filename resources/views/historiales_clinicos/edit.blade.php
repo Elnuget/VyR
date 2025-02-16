@@ -50,7 +50,7 @@
                 <div class="card-body">
                     <div class="form-group">
                         <label for="fecha">FECHA <span class="text-danger">*</span></label>
-                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ $historialClinico->fecha }}" required>
+                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ \Carbon\Carbon::parse($historialClinico->fecha)->format('Y-m-d') }}" required>
                     </div>
                 </div>
             </div>

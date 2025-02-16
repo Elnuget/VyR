@@ -76,7 +76,7 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ strtoupper($historial->nombres) }}</td>
                         <td>{{ strtoupper($historial->apellidos) }}</td>
-                        <td>{{ $historial->fecha }}</td>
+                        <td>{{ \Carbon\Carbon::parse($historial->fecha)->format('d/m/Y') }}</td>
                         <td>{{ strtoupper($historial->motivo_consulta) }}</td>
                         <td>
                             @if($historial->proxima_consulta)
