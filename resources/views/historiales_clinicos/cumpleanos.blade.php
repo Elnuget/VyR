@@ -85,12 +85,11 @@
                                         @endphp
                                         
                                         <button type="button" 
-                                            class="btn {{ $mensajeEnviado ? 'btn-secondary' : 'btn-success' }} btn-sm btn-enviar-mensaje"
+                                            class="btn {{ $mensajeEnviado ? 'btn-warning' : 'btn-success' }} btn-sm btn-enviar-mensaje"
                                             data-paciente-id="{{ $paciente['id'] }}"
-                                            {{ $mensajeEnviado ? 'disabled' : '' }}
                                             onclick="mostrarModalMensaje({{ $paciente['id'] }}, '{{ $paciente['nombres'] }}')">
                                             <i class="fab fa-whatsapp"></i> 
-                                            {{ $mensajeEnviado ? 'MENSAJE ENVIADO' : 'ENVIAR FELICITACIÓN' }}
+                                            {{ $mensajeEnviado ? 'VOLVER A ENVIAR' : 'ENVIAR FELICITACIÓN' }}
                                         </button>
                                     @endif
                                 </div>
@@ -243,10 +242,9 @@ function enviarMensaje() {
     window.open(whatsappUrl, '_blank');
 
     // Marcar el botón como enviado
-    boton.prop('disabled', true)
-         .removeClass('btn-success')
-         .addClass('btn-secondary')
-         .html('<i class="fas fa-check"></i> MENSAJE ENVIADO');
+    boton.removeClass('btn-success')
+         .addClass('btn-warning')
+         .html('<i class="fab fa-whatsapp"></i> VOLVER A ENVIAR');
     
     // Cerrar el modal
     $('#enviarMensajeModal').modal('hide');
@@ -275,12 +273,11 @@ $(document).ready(function() {
         const pacienteId = $(this).data('paciente-id');
         const mensajeEnviado = mensajesEnviados[pacienteId];
         
-        // Si el mensaje fue enviado hoy, deshabilitar el botón
+        // Si el mensaje fue enviado hoy, cambiar el botón a "Volver a enviar"
         if (mensajeEnviado && mensajeEnviado.fecha === fechaHoy && mensajeEnviado.tipo === 'cumpleanos') {
-            $(this).prop('disabled', true)
-                  .removeClass('btn-success')
-                  .addClass('btn-secondary')
-                  .html('<i class="fas fa-check"></i> MENSAJE ENVIADO');
+            $(this).removeClass('btn-success')
+                  .addClass('btn-warning')
+                  .html('<i class="fab fa-whatsapp"></i> VOLVER A ENVIAR');
         }
     });
 });

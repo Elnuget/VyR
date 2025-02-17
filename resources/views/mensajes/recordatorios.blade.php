@@ -183,15 +183,6 @@ function mostrarModalMensaje(pacienteId, nombrePaciente, fechaConsulta) {
     const fechaHoy = new Date().toISOString().split('T')[0];
     const mensajeEnviado = mensajesEnviados[pacienteId];
 
-    if (mensajeEnviado && mensajeEnviado.fecha === fechaHoy && mensajeEnviado.tipo === 'consulta') {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Mensaje ya enviado',
-            text: 'Ya se envió un mensaje a este paciente hoy.'
-        });
-        return;
-    }
-
     $('#pacienteId').val(pacienteId);
     $('#nombrePaciente').text(nombrePaciente);
     let mensaje = $('#mensajePredeterminado').val()
@@ -258,10 +249,9 @@ function enviarMensaje() {
 
             // Actualizar el botón inmediatamente
             const boton = $(`button[data-paciente-id="${pacienteId}"]`);
-            boton.prop('disabled', true)
-                .removeClass('btn-success')
-                .addClass('btn-secondary')
-                .html('<i class="fas fa-check"></i> MENSAJE ENVIADO');
+            boton.removeClass('btn-success')
+                .addClass('btn-warning')
+                .html('<i class="fab fa-whatsapp"></i> VOLVER A ENVIAR');
             
             // Abrir WhatsApp en nueva pestaña
             window.open(response.url, '_blank');
@@ -307,12 +297,11 @@ $(document).ready(function() {
         const pacienteId = $(this).data('paciente-id');
         const mensajeEnviado = mensajesEnviados[pacienteId];
         
-        // Si el mensaje fue enviado hoy, deshabilitar el botón
+        // Si el mensaje fue enviado hoy, cambiar el botón a "Volver a enviar"
         if (mensajeEnviado && mensajeEnviado.fecha === fechaHoy && mensajeEnviado.tipo === 'consulta') {
-            $(this).prop('disabled', true)
-                .removeClass('btn-success')
-                .addClass('btn-secondary')
-                .html('<i class="fas fa-check"></i> MENSAJE ENVIADO');
+            $(this).removeClass('btn-success')
+                .addClass('btn-warning')
+                .html('<i class="fab fa-whatsapp"></i> VOLVER A ENVIAR');
         }
     });
 });
