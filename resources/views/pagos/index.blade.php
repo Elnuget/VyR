@@ -68,6 +68,7 @@
     <div class="card">
         <div class="card-body">
             {{-- Agregar resumen de totales --}}
+            @can('admin')
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="info-box bg-success">
@@ -77,24 +78,23 @@
                         </div>
                     </div>
                 </div>
-                @can('admin')
-                    @foreach($mediosdepago as $medio)
-                        @php
-                            $totalPorMedio = $pagos->filter(function($pago) use ($medio) {
-                                return $pago->mediodepago->id === $medio->id;
-                            })->sum('pago');
-                        @endphp
-                        <div class="col-md-4">
-                            <div class="info-box {{ $totalPorMedio > 0 ? 'bg-info' : 'bg-secondary' }}">
-                                <div class="info-box-content">
-                                    <span class="info-box-text">TOTAL {{ strtoupper($medio->medio_de_pago) }}</span>
-                                    <span class="info-box-number">${{ number_format($totalPorMedio, 2, ',', '.') }}</span>
-                                </div>
+                @foreach($mediosdepago as $medio)
+                    @php
+                        $totalPorMedio = $pagos->filter(function($pago) use ($medio) {
+                            return $pago->mediodepago->id === $medio->id;
+                        })->sum('pago');
+                    @endphp
+                    <div class="col-md-4">
+                        <div class="info-box {{ $totalPorMedio > 0 ? 'bg-info' : 'bg-secondary' }}">
+                            <div class="info-box-content">
+                                <span class="info-box-text">TOTAL {{ strtoupper($medio->medio_de_pago) }}</span>
+                                <span class="info-box-number">${{ number_format($totalPorMedio, 2, ',', '.') }}</span>
                             </div>
                         </div>
-                    @endforeach
-                @endcan
+                    </div>
+                @endforeach
             </div>
+            @endcan
 
             {{-- Agregar formulario de filtro --}}
             <form method="GET" class="form-row mb-3" id="filterForm">

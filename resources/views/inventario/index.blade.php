@@ -81,13 +81,9 @@
                     <input type="month" name="fecha" class="form-control"
                            value="{{ request('fecha') ?? now()->format('Y-m') }}" />
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <label>&nbsp;</label>
                     <button class="btn btn-primary form-control" type="submit">Filtrar</button>
-                </div>
-                <div class="col-md-2">
-                    <label>&nbsp;</label>
-                    <a class="btn btn-secondary form-control" href="{{ route('inventario.index') }}">Limpiar</a>
                 </div>
             </form>
 

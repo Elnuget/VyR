@@ -47,6 +47,7 @@
     </div>
 
     {{-- Gráfica de Resumen General de Ventas --}}
+    @can('admin')
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -68,6 +69,7 @@
             </div>
         </div>
     </div>
+    @endcan
 
     {{-- Historial de Caja --}}
     <div class="row">
@@ -161,6 +163,7 @@
 @section('js')
     @include('atajos')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @can('admin')
     <script>
         // Obtener datos de ventas del último año
         const salesData = @json($salesDataMonthly ?? ['months' => [], 'totals' => []]);
@@ -237,8 +240,11 @@
                 }
             }
         });
+    </script>
+    @endcan
 
-        // Animación inicial
+    // Animación inicial
+    <script>
         $(document).ready(function() {
             $('.btn-lg').hide().fadeIn(1000);
         });

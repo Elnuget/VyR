@@ -32,6 +32,7 @@
 <div class="card">
     <div class="card-body">
         {{-- Resumen de totales --}}
+        @can('admin')
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="info-box bg-info">
@@ -58,6 +59,7 @@
                 </div>
             </div>
         </div>
+        @endcan
 
         {{-- Agregar formulario de filtro --}}
         <form method="GET" class="form-row mb-3" id="filterForm">
