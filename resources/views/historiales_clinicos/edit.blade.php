@@ -91,7 +91,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="fecha_nacimiento">FECHA DE NACIMIENTO</label>
-                                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" value="{{ $historialClinico->fecha_nacimiento }}">
+                                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" value="{{ $historialClinico->fecha_nacimiento ? \Carbon\Carbon::parse($historialClinico->fecha_nacimiento)->format('Y-m-d') : '' }}">
                             </div>
                         </div>
                         <div class="col-md-4">
