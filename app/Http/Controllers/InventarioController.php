@@ -7,6 +7,7 @@ use App\Models\Inventario; // Asegúrate de importar el modelo Inventario
 use App\Models\Pedido; // Asegúrate de importar el modelo Pedido
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class InventarioController extends Controller
 {
@@ -344,6 +345,67 @@ class InventarioController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar las fechas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Crea nuevos registros de inventario con la fecha actual
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function crearNuevosRegistros(Request $request)
+    {
+        try {
+            $request->validate([
+                'articulos' => 'required|array',
+                'articulos.*.codigo' => 'required|string',
+                'articulos.*.cantidad' => 'required|integer',
+                'articulos.*.lugar' => 'required|string',
+                'articulos.*.columna' => 'required|string'
+            ]);
+
+            DB::beginTransaction();
+            
+            $articulos = $request->input('articulos');
+            $creados = [];
+            
+            foreach ($articulos as $articulo) {
+                $creado = Inventario::create([
+                    'codigo' => $articulo['codigo'],
+                    'cantidad' => $articulo['cantidad'],
+                    'lugar' => $articulo['lugar'],
+                    'columna' => $articulo['columna'],
+                    'fecha' => now(),
+                    'numero' => 1
+                ]);
+                $creados[] = $creado->id;
+            }
+
+            DB::commit();
+            
+            \Log::info('Registros creados correctamente', ['ids' => $creados]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Registros creados correctamente',
+                'ids' => $creados
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            \Log::error('Error de validación al crear registros: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error de validación: ' . $e->getMessage(),
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al crear nuevos registros: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al crear los registros: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -65,6 +65,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/Inventario/Actualizar', [InventarioController::class, 'actualizar'])
         ->name('inventario.actualizar');
     
+    Route::post('inventario/crear-nuevos-registros', [InventarioController::class, 'crearNuevosRegistros'])
+        ->name('inventario.crear-nuevos-registros')
+        ->middleware('web');
+
     Route::post('/inventario/actualizar-fechas', [InventarioController::class, 'actualizarFechas'])
         ->name('inventario.actualizar-fechas');
 

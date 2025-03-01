@@ -7,6 +7,7 @@
 @stop
 
 @section('content')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         /* Convertir todo el texto a mayúsculas */
         body, 
@@ -186,53 +187,59 @@
                     return;
                 }
 
-                if (!confirm('¿Está seguro de actualizar la fecha de los artículos seleccionados a la fecha actual?')) {
+                if (!confirm('¿Está seguro de crear nuevos registros con la fecha actual para los artículos seleccionados?')) {
                     return;
                 }
 
-                const ids = Array.from(filasSeleccionadas).map(checkbox => 
-                    checkbox.closest('tr').getAttribute('data-id')
-                );
+                const articulos = Array.from(filasSeleccionadas).map(checkbox => {
+                    const fila = checkbox.closest('tr');
+                    return {
+                        id: fila.querySelector('td:nth-child(2)').textContent,
+                        codigo: fila.querySelector('td:nth-child(3)').textContent,
+                        cantidad: parseInt(fila.querySelector('td:nth-child(4)').textContent),
+                        lugar: fila.querySelector('td:nth-child(5)').textContent,
+                        columna: fila.querySelector('td:nth-child(6)').textContent
+                    };
+                });
 
                 try {
-                    const response = await fetch('/inventario/actualizar-fechas', {
+                    console.log('Enviando datos:', articulos);
+                    const response = await fetch('{{ route("inventario.crear-nuevos-registros") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
-                        body: JSON.stringify({ ids: ids })
+                        body: JSON.stringify({ articulos: articulos })
                     });
 
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success) {
-                            // Actualizar las fechas en la tabla
-                            const fechaActual = new Date().toLocaleDateString('es-ES');
-                            filasSeleccionadas.forEach(checkbox => {
-                                const fila = checkbox.closest('tr');
-                                fila.querySelector('td:last-child').textContent = fechaActual;
-                                fila.setAttribute('data-fecha', new Date().toISOString().split('T')[0]);
-                            });
+                    console.log('Status:', response.status);
+                    console.log('Status Text:', response.statusText);
 
-                            // Actualizar los filtros
-                            actualizarLugares(document.getElementById('mes_filtro').value);
-                            filtrarTabla();
+                    // Verificar el tipo de contenido de la respuesta
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.error('Tipo de contenido no válido:', contentType);
+                        throw new Error('La respuesta del servidor no es JSON. Verifica que la ruta esté correctamente definida.');
+                    }
 
-                            // Limpiar selección
-                            document.getElementById('checkAll').checked = false;
-                            filasSeleccionadas.forEach(checkbox => checkbox.checked = false);
+                    const result = await response.json();
+                    console.log('Respuesta:', result);
 
-                            alert('Fechas actualizadas correctamente.');
-                        } else {
-                            throw new Error('Error al actualizar las fechas');
-                        }
+                    if (!response.ok) {
+                        throw new Error(result.error || `Error del servidor: ${response.status} - ${response.statusText}`);
+                    }
+
+                    if (result.success) {
+                        alert('Registros creados correctamente.');
+                        window.location.reload();
                     } else {
-                        throw new Error('Error en la respuesta del servidor');
+                        throw new Error(result.error || 'Error al crear los nuevos registros');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error al actualizar las fechas. Por favor, intente nuevamente.');
+                    console.error('Error detallado:', error);
+                    alert('Error: ' + error.message);
                 }
             });
 
@@ -241,17 +248,30 @@
                 const filas = document.querySelectorAll('.fila-inventario');
                 const lugaresSet = new Set();
                 
+                console.log('Mes seleccionado:', mes);
+                
                 // Recolectar lugares únicos que tienen stock en el mes seleccionado
                 filas.forEach(fila => {
                     const fechaFila = fila.getAttribute('data-fecha');
                     const mesFila = fechaFila.slice(0, 7);
-                    const cantidad = parseInt(fila.querySelector('td:nth-child(3)').textContent);
+                    const cantidad = parseInt(fila.querySelector('td:nth-child(4)').textContent);
+                    const lugar = fila.querySelector('td:nth-child(5)').textContent.trim();
                     
-                    if (mesFila === mes && cantidad > 0) {
-                        const lugar = fila.getAttribute('data-lugar');
+                    console.log('Revisando fila:', {
+                        lugar: lugar,
+                        cantidad: cantidad,
+                        mesFila: mesFila,
+                        fechaFila: fechaFila
+                    });
+
+                    // Eliminar la condición del mes para ver todos los lugares
+                    if (cantidad !== 0) {
                         lugaresSet.add(lugar);
+                        console.log('Agregando lugar:', lugar);
                     }
                 });
+
+                console.log('Lugares encontrados:', Array.from(lugaresSet));
 
                 // Actualizar el combobox de lugares
                 const lugarSelect = document.getElementById('lugar_filtro');
@@ -282,25 +302,74 @@
                 const lugar = document.getElementById('lugar_filtro').value;
                 const columna = document.getElementById('columna_filtro').value;
 
+                console.log('Filtrando con:', {
+                    mes: mes,
+                    lugar: lugar,
+                    columna: columna
+                });
+
                 const filas = document.querySelectorAll('.fila-inventario');
+                
+                // Crear un mapa para agrupar filas por código
+                const filasPorCodigo = new Map();
+                
+                filas.forEach(fila => {
+                    const codigo = fila.querySelector('td:nth-child(3)').textContent;
+                    const fechaFila = fila.getAttribute('data-fecha');
+                    if (!filasPorCodigo.has(codigo)) {
+                        filasPorCodigo.set(codigo, []);
+                    }
+                    filasPorCodigo.get(codigo).push({
+                        fila: fila,
+                        fecha: fechaFila
+                    });
+                });
+
+                let filasVisibles = 0;
                 filas.forEach(fila => {
                     const fechaFila = fila.getAttribute('data-fecha');
-                    const lugarFila = fila.getAttribute('data-lugar');
-                    const columnaFila = fila.getAttribute('data-columna');
-                    const cantidad = parseInt(fila.querySelector('td:nth-child(3)').textContent);
+                    const lugarFila = fila.querySelector('td:nth-child(5)').textContent.trim();
+                    const columnaFila = fila.querySelector('td:nth-child(6)').textContent.trim();
+                    const cantidad = parseInt(fila.querySelector('td:nth-child(4)').textContent);
+                    const codigo = fila.querySelector('td:nth-child(3)').textContent;
                     
                     const mesFila = fechaFila.slice(0, 7);
                     const cumpleMes = mesFila === mes;
-                    const cumpleLugar = !lugar || lugarFila === lugar;
+                    const cumpleLugar = !lugar || lugarFila.toUpperCase() === lugar.toUpperCase();
                     const cumpleColumna = !columna || columnaFila === columna;
-                    const tieneStock = cantidad > 0;
+                    const tieneStock = cantidad !== 0;
 
-                    if (cumpleMes && cumpleLugar && cumpleColumna && tieneStock) {
+                    // Verificar si existe el mismo código en un mes posterior
+                    const registrosDelCodigo = filasPorCodigo.get(codigo) || [];
+                    const existeEnMesSiguiente = registrosDelCodigo.some(registro => {
+                        const mesFecha = registro.fecha.slice(0, 7);
+                        return mesFecha > mes;
+                    });
+
+                    const debeMostrar = cumpleMes && cumpleLugar && cumpleColumna && tieneStock && !existeEnMesSiguiente;
+                    
+                    if (lugarFila.toUpperCase().includes('GOTERO')) {
+                        console.log('Fila de GOTERO:', {
+                            lugar: lugarFila,
+                            cantidad: cantidad,
+                            cumpleMes: cumpleMes,
+                            cumpleLugar: cumpleLugar,
+                            cumpleColumna: cumpleColumna,
+                            tieneStock: tieneStock,
+                            existeEnMesSiguiente: existeEnMesSiguiente,
+                            debeMostrar: debeMostrar
+                        });
+                    }
+
+                    if (debeMostrar) {
                         fila.style.display = '';
+                        filasVisibles++;
                     } else {
                         fila.style.display = 'none';
                     }
                 });
+
+                console.log('Total de filas visibles:', filasVisibles);
             }
 
             // Eventos para los filtros
