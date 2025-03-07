@@ -95,7 +95,7 @@
                     <div class="row mb-3">
                         <div class="col-12">
                             <button id="actualizarFechasBtn" class="btn btn-primary">
-                                <i class="fas fa-calendar-check"></i> ACTUALIZAR FECHAS SELECCIONADAS
+                                <i class="fas fa-calendar-check"></i> ACTUALIZAR AL MES SIGUIENTE DEL ORIGINAL
                             </button>
                         </div>
                     </div>
@@ -189,7 +189,7 @@
                     return;
                 }
 
-                if (!confirm('¿Está seguro de crear nuevos registros con la fecha actual para los artículos seleccionados?')) {
+                if (!confirm('¿Está seguro de crear nuevos registros con la fecha del MES SIGUIENTE AL MES ORIGINAL de los artículos seleccionados?')) {
                     return;
                 }
 
@@ -201,7 +201,8 @@
                         cantidad: parseInt(fila.querySelector('td:nth-child(4)').textContent),
                         lugar: fila.querySelector('td:nth-child(5)').textContent,
                         columna: fila.querySelector('td:nth-child(6)').textContent,
-                        numero: parseInt(fila.querySelector('td:nth-child(7)').textContent || '1')
+                        numero: parseInt(fila.querySelector('td:nth-child(7)').textContent || '1'),
+                        fecha_original: fila.getAttribute('data-fecha')
                     };
                 });
 

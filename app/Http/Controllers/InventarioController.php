@@ -364,7 +364,8 @@ class InventarioController extends Controller
                 'articulos.*.cantidad' => 'required|integer',
                 'articulos.*.lugar' => 'required|string',
                 'articulos.*.columna' => 'required|string',
-                'articulos.*.numero' => 'nullable|integer'
+                'articulos.*.numero' => 'nullable|integer',
+                'articulos.*.fecha_original' => 'required|string'
             ]);
 
             DB::beginTransaction();
@@ -373,12 +374,16 @@ class InventarioController extends Controller
             $creados = [];
             
             foreach ($articulos as $articulo) {
+                // Calcular fecha del siguiente mes basado en la fecha original
+                $fechaOriginal = \Carbon\Carbon::parse($articulo['fecha_original']);
+                $fechaSiguienteMes = $fechaOriginal->copy()->addMonth()->startOfMonth();
+                
                 $creado = Inventario::create([
                     'codigo' => $articulo['codigo'],
                     'cantidad' => $articulo['cantidad'],
                     'lugar' => $articulo['lugar'],
                     'columna' => $articulo['columna'],
-                    'fecha' => now(),
+                    'fecha' => $fechaSiguienteMes,
                     'numero' => $articulo['numero'] ?? 1
                 ]);
                 $creados[] = $creado->id;
