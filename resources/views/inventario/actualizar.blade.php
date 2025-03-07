@@ -120,6 +120,7 @@
                                         <th>CANTIDAD</th>
                                         <th>LUGAR</th>
                                         <th>COLUMNA</th>
+                                        <th>NUMERO</th>
                                         <th>FECHA</th>
                                     </tr>
                                 </thead>
@@ -141,6 +142,7 @@
                                             <td>{{ $item->cantidad }}</td>
                                             <td>{{ $item->lugar }}</td>
                                             <td>{{ $item->columna }}</td>
+                                            <td>{{ $item->numero ?? 1 }}</td>
                                             <td>{{ $item->fecha ? \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') : 'Sin fecha' }}</td>
                                         </tr>
                                     @endforeach
@@ -198,7 +200,8 @@
                         codigo: fila.querySelector('td:nth-child(3)').textContent,
                         cantidad: parseInt(fila.querySelector('td:nth-child(4)').textContent),
                         lugar: fila.querySelector('td:nth-child(5)').textContent,
-                        columna: fila.querySelector('td:nth-child(6)').textContent
+                        columna: fila.querySelector('td:nth-child(6)').textContent,
+                        numero: parseInt(fila.querySelector('td:nth-child(7)').textContent || '1')
                     };
                 });
 

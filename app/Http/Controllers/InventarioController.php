@@ -220,8 +220,8 @@ class InventarioController extends Controller
     public function actualizar()
     {
         try {
-            // Obtener artículos sin orden asignada
-            $inventario = Inventario::whereNull('orden')
+            // Obtener artículos cuya cantidad es distinta de 0
+            $inventario = Inventario::where('cantidad', '!=', 0)
                 ->orderBy('fecha', 'desc')
                 ->get();
             
@@ -363,7 +363,8 @@ class InventarioController extends Controller
                 'articulos.*.codigo' => 'required|string',
                 'articulos.*.cantidad' => 'required|integer',
                 'articulos.*.lugar' => 'required|string',
-                'articulos.*.columna' => 'required|string'
+                'articulos.*.columna' => 'required|string',
+                'articulos.*.numero' => 'nullable|integer'
             ]);
 
             DB::beginTransaction();
@@ -378,7 +379,7 @@ class InventarioController extends Controller
                     'lugar' => $articulo['lugar'],
                     'columna' => $articulo['columna'],
                     'fecha' => now(),
-                    'numero' => 1
+                    'numero' => $articulo['numero'] ?? 1
                 ]);
                 $creados[] = $creado->id;
             }
