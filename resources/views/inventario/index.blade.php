@@ -25,7 +25,7 @@
 
 @section('content')
     <style>
-        /* Convertir todo el texto a mayúsculas */
+        /* Estilos base y transformación a mayúsculas */
         body, 
         .content-wrapper, 
         .main-header, 
@@ -57,31 +57,173 @@
             text-transform: uppercase !important;
         }
 
-        /* Asegurar que las opciones del datalist también estén en mayúsculas */
-        datalist option {
-            text-transform: uppercase !important;
+        /* Estilos responsivos generales */
+        .card-body {
+            padding: 1rem;
         }
 
-        /* Asegurar que los botones de acción estén en mayúsculas */
-        .btn-toolbar .btn {
-            text-transform: uppercase !important;
+        .form-row {
+            margin-right: -5px;
+            margin-left: -5px;
         }
 
-        /* Asegurar que los menús desplegables estén en mayúsculas */
-        .dropdown-menu .dropdown-item {
-            text-transform: uppercase !important;
+        .form-row > [class*='col-'] {
+            padding-right: 5px;
+            padding-left: 5px;
+        }
+
+        /* Ajustes responsivos para la barra de herramientas */
+        .btn-toolbar {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn-group {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            white-space: nowrap;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* Ajustes para tablas responsivas */
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+            border: none;
+            width: 100%;
+        }
+
+        .table {
+            min-width: 100%;
+        }
+
+        .table td, .table th {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        /* Ajustes responsivos para tarjetas */
+        .card-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        /* Media queries para dispositivos móviles */
+        @media (max-width: 768px) {
+            /* Ajustes del formulario en móvil */
+            .form-row > [class*='col-'] {
+                margin-bottom: 0.5rem;
+            }
+
+            /* Ajustes de botones en móvil */
+            .btn-toolbar {
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            /* Ajustes de tarjetas en móvil */
+            .card-header {
+                padding: 0.5rem;
+            }
+
+            .card-title {
+                font-size: 0.9rem;
+            }
+
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.25em 0.5em;
+            }
+
+            /* Ajustes de tabla en móvil */
+            .table td, .table th {
+                padding: 0.25rem;
+                font-size: 0.8rem;
+            }
+
+            /* Ajustes de los iconos en móvil */
+            .fas {
+                font-size: 0.9rem;
+            }
+
+            /* Mejorar visualización de badges en móvil */
+            .d-flex.align-items-center {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+
+            .badge {
+                margin: 0.1rem !important;
+            }
+        }
+
+        /* Media queries para tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .card-title {
+                font-size: 0.95rem;
+            }
+
+            .table td, .table th {
+                padding: 0.4rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Ajustes para la búsqueda y filtros */
+        #busquedaGlobal {
+            max-width: 100%;
+        }
+
+        /* Ajustes para los campos editables */
+        .editable .edit-input {
+            width: 100%;
+            min-width: 50px;
+        }
+
+        /* Asegurar que los menús desplegables sean responsivos */
+        .dropdown-menu {
+            max-width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
     </style>
 
     <div class="card">
         <div class="card-body">
             <form method="GET" class="form-row mb-3">
-                <div class="col-md-8">
+                <div class="col-md-4">
                     <label for="filtroFecha">Seleccionar Fecha:</label>
                     <input type="month" name="fecha" class="form-control"
                            value="{{ request('fecha') ?? now()->format('Y-m') }}" />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
+                    <label for="busqueda">Buscar Artículo:</label>
+                    <input type="text" id="busquedaGlobal" class="form-control" placeholder="BUSCAR POR NÚMERO, CÓDIGO O LUGAR...">
+                </div>
+                <div class="col-md-2">
                     <label>&nbsp;</label>
                     <button class="btn btn-primary form-control" type="submit">Filtrar</button>
                 </div>
@@ -89,6 +231,9 @@
 
             <div class="btn-toolbar mb-3" role="toolbar">
                 <div class="btn-group">
+                    <button class="btn btn-dark" id="toggleAll">
+                        <i class="fas fa-expand-arrows-alt"></i> EXPANDIR/CONTRAER TODO
+                    </button>
                     <button class="btn btn-success" onclick="crearArticulo()">
                         <i class="fas fa-plus"></i> CREAR ARTÍCULO
                     </button>
@@ -246,15 +391,50 @@
                 $(this).find('.transition-icon').toggleClass('fa-rotate-180');
             });
 
-            // Inicializar DataTables con configuración simplificada
+            // Inicializar DataTables con configuración responsiva
             $('.table').DataTable({
-                dom: 't',
-                ordering: false,
-                searching: false,
+                dom: '<"row"<"col-12"f>>' +
+                     '<"row"<"col-12"t>>',
+                ordering: true,
+                searching: true,
                 paging: false,
                 info: false,
-                responsive: true,
-                autoWidth: true
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 'tr'
+                    }
+                },
+                autoWidth: false,
+                language: {
+                    search: "Buscar:",
+                    zeroRecords: "No se encontraron registros coincidentes",
+                    searchPlaceholder: "Buscar en esta columna..."
+                }
+            });
+
+            // Variable para controlar el estado de expansión
+            let allExpanded = false;
+
+            // Función para expandir/contraer todas las tarjetas
+            $('#toggleAll').on('click', function() {
+                allExpanded = !allExpanded;
+                if (allExpanded) {
+                    $('.collapse').collapse('show');
+                    $('.transition-icon').addClass('fa-rotate-180');
+                } else {
+                    $('.collapse').collapse('hide');
+                    $('.transition-icon').removeClass('fa-rotate-180');
+                }
+            });
+
+            // Búsqueda global
+            $('#busquedaGlobal').on('keyup', function() {
+                let searchTerm = $(this).val().toLowerCase();
+                $('.table').each(function() {
+                    let table = $(this).DataTable();
+                    table.search(searchTerm).draw();
+                });
             });
 
             // Funciones de navegación
