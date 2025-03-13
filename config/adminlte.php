@@ -16,7 +16,7 @@ return [
 
     'title' => 'Login',
     'title_prefix' => '',
-    'title_postfix' => '| ESCLEROPTICA',
+    'title_postfix' => '| VyR',
 
     /*
     |--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ return [
     |
     */
 
-    'logo' => '<b>Escleróptica</b>',
+    'logo' => '<b>VyR</b>',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     
 

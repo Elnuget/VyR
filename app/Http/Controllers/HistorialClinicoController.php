@@ -244,7 +244,7 @@ class HistorialClinicoController extends Controller
             $DIAS_VALIDEZ = 15;
             $TELEFONO_OPTICA = "(02) 234-5678";
             $DIRECCION_OPTICA = "Av. Principal 123, Quito";
-            $NOMBRE_OPTICA = "Escleróptica";
+            $NOMBRE_OPTICA = "VyR";
             $HORARIO_ATENCION = "Lunes a Viernes de 09:00 a 18:00";
             
             // Debug para ver qué datos estamos recibiendo
